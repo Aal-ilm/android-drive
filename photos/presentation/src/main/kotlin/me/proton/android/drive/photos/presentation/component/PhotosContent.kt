@@ -48,14 +48,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import coil.compose.LocalImageLoader
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
+import coil.request.Disposable
 import kotlinx.coroutines.flow.Flow
 import me.proton.android.drive.photos.presentation.extension.rememberLazyGridState
 import me.proton.android.drive.photos.presentation.state.PhotosItem
@@ -166,15 +169,32 @@ fun PhotosContent(
     val gridState = items.rememberLazyGridState()
     val driveLinksMap by driveLinksFlow.collectAsStateWithLifecycle(initialValue = emptyMap())
     val firstVisibleItemIndex by remember(gridState) { derivedStateOf { gridState.firstVisibleItemIndex } }
-    LaunchedEffect(firstVisibleItemIndex, items.itemSnapshotList.items) {
+    val visibleCount by remember(gridState) { derivedStateOf { gridState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1) } }
+    val localContext = LocalContext.current
+    val imageLoader = LocalImageLoader.current
+    val precacheDisposables = remember { mutableMapOf<LinkId, Disposable>() }
+    LaunchedEffect(firstVisibleItemIndex, visibleCount, driveLinksMap) {
+        items.itemSnapshotList.items
+            .takeIf { list -> list.isNotEmpty() }
+            ?.targetIds(visibleCount, firstVisibleItemIndex)
+            ?.disposeNonTargeted(precacheDisposables)
+            ?.filter { targetId -> targetId !in precacheDisposables }
+            ?.mapNotNull { targetId -> driveLinksMap[targetId]?.let { driveLink -> targetId to driveLink } }
+            ?.forEach { (id, driveLink) ->
+                driveLink.preCacheDefaultThumbnail(localContext, imageLoader)
+                    ?.also { precacheDisposables[id] = it }
+            } ?: return@LaunchedEffect
+    }
+    LaunchedEffect(firstVisibleItemIndex, visibleCount, items.itemSnapshotList.items) {
         onScroll(
             firstVisibleItemIndex,
             items.itemSnapshotList.items
                 .takeIf { list -> list.isNotEmpty() && list.size > firstVisibleItemIndex }
                 ?.let { list ->
                     val sizeRange = IntRange(0, list.size - 1)
-                    val fromIndex = (firstVisibleItemIndex - 10).coerceIn(sizeRange)
-                    val toIndex = (firstVisibleItemIndex + 20).coerceIn(sizeRange)
+                    val offscreenPageSize = minOf(visibleCount, MAX_OFFSCREEN_PAGE_SIZE)
+                    val fromIndex = (firstVisibleItemIndex - offscreenPageSize).coerceIn(sizeRange)
+                    val toIndex = (firstVisibleItemIndex + visibleCount + offscreenPageSize - 1).coerceIn(sizeRange)
                     list.subList(fromIndex, toIndex + 1)
                         .filterIsInstance<PhotosItem.PhotoListing>()
                         .map { photoListing -> photoListing.id }
@@ -331,3 +351,29 @@ fun PhotosContent(
         )
     }
 }
+
+private fun List<PhotosItem>.targetIds(
+    visibleCount: Int,
+    firstVisibleItemIndex: Int,
+): Set<FileId> {
+    val sizeRange = IntRange(0, size - 1)
+    val offscreenPageSize = minOf(visibleCount, MAX_OFFSCREEN_PAGE_SIZE)
+    val afterFrom = (firstVisibleItemIndex + visibleCount).coerceIn(sizeRange)
+    val afterTo = (firstVisibleItemIndex + visibleCount + offscreenPageSize - 1).coerceIn(sizeRange)
+    val beforeFrom = (firstVisibleItemIndex - offscreenPageSize).coerceIn(sizeRange)
+    val beforeTo = (firstVisibleItemIndex - 1).coerceIn(sizeRange)
+    return (subList(afterFrom, afterTo + 1) + subList(beforeFrom, beforeTo + 1))
+        .filterIsInstance<PhotosItem.PhotoListing>()
+        .map { photoListing ->  photoListing.id }
+        .toSet()
+}
+
+private fun Set<FileId>.disposeNonTargeted(
+    precacheDisposables: MutableMap<LinkId, Disposable>
+): Set<FileId> = this.apply {
+    (precacheDisposables.keys - this).forEach { id ->
+        precacheDisposables.remove(id)?.dispose()
+    }
+}
+
+private const val MAX_OFFSCREEN_PAGE_SIZE = 36

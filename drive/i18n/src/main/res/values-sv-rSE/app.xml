@@ -148,6 +148,16 @@
   <string name="notification_content_text_backup_paused_background_restrictions">Säkerhetskopiering kan inte köras i bakgrunden</string>
   <string name="notification_content_text_backup_preparing">Förbereder att säkerhetskopiera</string>
   <string name="notification_content_text_backup_failed_migration">Migrering pågår, uppdatera din applikation</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">Laddar ner %1$d fil</item>
+    <item quantity="other">Laddar ner %1$d filer</item>
+  </plurals>
   <string name="notification_content_title_download_complete">Nedladdning slutförd</string>
   <string name="notification_content_title_forced_sign_out">Logga in</string>
   <string name="notification_content_text_forced_sign_out">Ursäkta att vi avbryter! Vi hade ett problem med synkronisering - logga in igen så kommer allt att fungera som det ska.</string>

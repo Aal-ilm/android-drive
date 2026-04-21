@@ -18,6 +18,6 @@
   -->
 <resources>
   <string name="whats_new_title">最新情報</string>
-  <string name="whats_new_upload_folder_title">Backup entire folders with one tap</string>
-  <string name="whats_new_upload_folder_description">Upload a full folder to Proton Drive by tapping + in the top-right corner and selecting ‘Upload a folder’.</string>
+  <string name="whats_new_upload_folder_title">ワンタップで全てのフォルダをバックアップ</string>
+  <string name="whats_new_upload_folder_description">右上の「＋」をタップし、「フォルダをアップロード」を選択してProton Driveにフォルダ全体をアップロードします。</string>
 </resources>

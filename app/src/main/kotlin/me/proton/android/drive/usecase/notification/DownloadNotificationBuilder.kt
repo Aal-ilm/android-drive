@@ -35,10 +35,10 @@ class DownloadNotificationBuilder @Inject constructor(
     private val commonBuilder: CommonNotificationBuilder,
     private val contentIntent: CreateContentPendingIntent,
 ) {
-    operator fun invoke(notificationId: NotificationId.User, event: Event.Download) =
-        commonBuilder(notificationId, event)
+    operator fun invoke(notificationId: NotificationId.User, events: List<Event.Download>) =
+        commonBuilder(notificationId, events.last())
             .setContentTitle(appContext.getString(I18N.string.notification_content_title_download_complete))
-            .setContentText(event.text)
+            .setContentText(events.sumOf { it.downloadedFiles }.text)
             .setContentIntent(notificationId)
 
     private fun NotificationCompat.Builder.setContentIntent(
@@ -50,9 +50,9 @@ class DownloadNotificationBuilder @Inject constructor(
         )
     )
 
-    private val Event.Download.text: String get() =
+    private val Int.text: String get() =
         appContext.quantityString(
             I18N.plurals.common_in_app_notification_files_download_complete,
-            downloadedFiles,
+            this,
         )
 }

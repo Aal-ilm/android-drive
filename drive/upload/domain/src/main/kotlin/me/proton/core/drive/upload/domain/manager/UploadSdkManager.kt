@@ -90,7 +90,14 @@ class UploadSdkManager @Inject constructor(
             val uploader = uploader
                 ?: throw UploadNotFoundException("Upload was not enqueued or cancelled for ${uploadFileLink.id}")
 
-            controller ?: block(uploader).also { controller = it }
+            suspend fun createController(): UploadController {
+                CoreLogger.i(
+                    tag = uploadFileLink.id.logTag(),
+                    message = "Creating controller",
+                )
+                return block(uploader)
+            }
+            controller ?: createController().also { controller = it }
         }
     }
 
@@ -130,6 +137,24 @@ class UploadSdkManager @Inject constructor(
                     cancel()
                     close()
                 }
+            }
+        }
+    }
+
+    suspend fun cancelController(uploadFileLink: UploadFileLink) {
+        val id = uploadFileLink.id
+        val state = states[id] ?: return
+        with(state) {
+            CoreLogger.d(
+                id.logTag(), "Cancelling sdk controller: ${uploader != null}"
+            )
+            mutex.withLock {
+                controller?.apply {
+                    cancel()
+                    dispose()
+                    close()
+                }
+                controller = null
             }
         }
     }

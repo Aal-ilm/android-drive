@@ -116,6 +116,7 @@ private fun TopAppBar(
 ) {
     TopAppBar(
         navigationIcon = painterResource(id = CorePresentation.drawable.ic_proton_close),
+        navigationContentDescription = stringResource(I18N.string.common_close_action),
         onNavigationIcon = navigateBack,
         title = {},
         modifier = modifier.statusBarsPadding(),

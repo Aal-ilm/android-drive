@@ -142,7 +142,14 @@ class ContentUriResolver(
     ): T? = coRunCatching(coroutineContext) {
         with (applicationContext.contentResolver) {
             val uri = Uri.parse(uriString)
-            runCatching { takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            runCatching {
+                takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }.onFailure { error ->
+                error.log(
+                    tag = UPLOAD,
+                    message = "No persistable permission for: $uriString, relying on temporary grant",
+                )
+            }
             block(uri)
         }
     }.onFailure { error ->

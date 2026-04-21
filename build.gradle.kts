@@ -64,6 +64,9 @@ allprojects {
             resolutionStrategy.dependencySubstitution {
                 substitute(module("com.google.protobuf:protobuf-lite"))
                     .using(module("com.google.protobuf:protobuf-javalite:${libs.versions.protobufJavaLite.get()}"))
+                substitute(module("androidx.navigation:navigation-compose"))
+                    .using(module("androidx.navigation:navigation-compose:${libs.versions.androidx.navigation.get()}"))
+                    .because("androidx-hilt 1.3.0 brings androidx.navigation version 2.9.0 which is more strict that currently used")
             }
         }
     }
@@ -72,11 +75,12 @@ allprojects {
 subprojects {
     configurations.all {
         exclude(group = "me.proton.crypto", module = "android-golib")
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-android-extensions-runtime")
     }
 }
 
 tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory)
 }
 
 tasks.register("deleteTest", Delete::class) {

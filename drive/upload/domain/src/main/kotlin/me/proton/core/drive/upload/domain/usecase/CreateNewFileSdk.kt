@@ -25,12 +25,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.proton.core.drive.base.domain.entity.Bytes
 import me.proton.core.drive.base.domain.entity.TimestampS
-import me.proton.core.drive.base.domain.entity.toTimestampS
 import me.proton.core.drive.base.domain.extension.toInstant
 import me.proton.core.drive.base.domain.extension.toResult
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.crypto.domain.usecase.file.GetFileName
+import me.proton.core.drive.link.domain.extension.nodeUid
 import me.proton.core.drive.link.domain.extension.toSdkPhotoTag
 import me.proton.core.drive.linkupload.domain.entity.UploadFileLink
 import me.proton.core.drive.linkupload.domain.entity.UploadState
@@ -40,10 +40,8 @@ import me.proton.core.drive.linkupload.domain.usecase.UpdateUploadState
 import me.proton.core.drive.share.domain.entity.Share
 import me.proton.core.drive.share.domain.usecase.GetShare
 import me.proton.core.drive.upload.domain.manager.UploadSdkManager
-import me.proton.drive.sdk.Uid
 import me.proton.drive.sdk.entity.FileUploaderRequest
 import me.proton.drive.sdk.entity.PhotosUploaderRequest
-import me.proton.drive.sdk.uploader
 import java.time.Instant
 import javax.inject.Inject
 
@@ -109,10 +107,7 @@ class CreateNewFileSdk @Inject constructor(
     ) = uploadSdkManager.enqueue(this@enqueue) { client ->
         client.uploader(
             request = FileUploaderRequest(
-                parentFolderUid = Uid.makeNodeUid(
-                    volumeId = volumeId.id,
-                    nodeId = parentLinkId.id,
-                ),
+                parentFolderUid = parentLinkId.nodeUid(volumeId),
                 name = name,
                 mediaType = mimeType,
                 fileSize = size.value,

@@ -26,5 +26,5 @@ class GetDownloadProgress @Inject constructor(
 ) {
     operator fun invoke(
         driveLink: DriveLink.File,
-    ) = downloadManager.getProgressFlow(driveLink)
+    ) = downloadManager.getProgressFlow(driveLink.id)
 }

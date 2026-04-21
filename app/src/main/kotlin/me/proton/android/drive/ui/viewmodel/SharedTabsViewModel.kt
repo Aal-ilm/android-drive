@@ -18,16 +18,17 @@
 
 package me.proton.android.drive.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.proton.android.drive.ui.effect.HomeEffect
 import me.proton.android.drive.ui.effect.HomeTabViewModel
@@ -42,6 +43,7 @@ import me.proton.core.drive.i18n.R as I18N
 
 @HiltViewModel
 class SharedTabsViewModel @Inject constructor(
+    @param:ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle,
     shouldUpgradeStorage: ShouldUpgradeStorage,
 ) : ViewModel(),
@@ -58,6 +60,7 @@ class SharedTabsViewModel @Inject constructor(
     val initialViewState = SharedTabsViewState(
         titleResId = I18N.string.title_shared,
         navigationIconResId = CorePresentation.drawable.ic_proton_hamburger,
+        navigationContentDescription = appContext.getString(I18N.string.common_open_side_menu_action),
         notificationDotVisible = false,
         tabs = listOf(sharedWithMeTab, sharedWithByTab),
         selectedTab = selectedTab.value,

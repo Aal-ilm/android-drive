@@ -19,6 +19,7 @@
 package me.proton.drive.android.settings.domain.usecase
 
 import me.proton.core.domain.entity.UserId
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.drive.android.settings.domain.UiSettingsRepository
 import me.proton.drive.android.settings.domain.entity.ThemeStyle
 import javax.inject.Inject
@@ -26,6 +27,7 @@ import javax.inject.Inject
 class UpdateThemeStyle @Inject constructor(
     private val repository: UiSettingsRepository
 ) {
-    suspend operator fun invoke(userId: UserId, themeStyle: ThemeStyle) =
+    suspend operator fun invoke(userId: UserId, themeStyle: ThemeStyle) = coRunCatching {
         repository.updateThemeStyle(userId, themeStyle)
+    }
 }

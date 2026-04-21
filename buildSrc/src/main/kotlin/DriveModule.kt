@@ -30,7 +30,7 @@ import org.gradle.kotlin.dsl.findByType
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
-import org.jetbrains.kotlin.gradle.plugin.KaptExtension
+import com.google.devtools.ksp.gradle.KspExtension
 import java.io.File
 
 @Suppress("LongMethod")
@@ -43,16 +43,16 @@ fun Project.driveModule(
     includeSubmodules: Boolean = false,
     i18n: Boolean = false,
     socialTest: Boolean = false,
-    kapt: Boolean = hilt || room || socialTest,
     showkase: Boolean = false,
+    ksp: Boolean = showkase || hilt || socialTest || room,
     buildConfig: Boolean = false,
     enableTestFixtures: Boolean = false,
     dependencies: DependencyHandler.() -> Unit = {},
 ) {
     val catalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
     apply(plugin = "kotlin-android")
-    if (kapt) {
-        apply(plugin = "kotlin-kapt")
+    if (ksp) {
+        apply(plugin = "com.google.devtools.ksp")
     }
     if (compose) {
         apply(plugin = "org.jetbrains.kotlin.plugin.compose")
@@ -72,12 +72,6 @@ fun Project.driveModule(
             applicationId = Config.applicationId
             versionCode = versionCodeFromGitCommitCount
             versionName = Config.versionName
-
-            javaCompileOptions {
-                annotationProcessorOptions {
-                    arguments["room.schemaLocation"] = "$projectDir/schemas"
-                }
-            }
         }
 
         buildTypes {
@@ -102,6 +96,15 @@ fun Project.driveModule(
             this.buildConfig = buildConfig
         }
 
+        packaging {
+            resources.excludes.add("META-INF/licenses/**")
+            resources.excludes.add("META-INF/LICENSE*")
+            resources.excludes.add("META-INF/AL2.0")
+            resources.excludes.add("META-INF/LGPL2.1")
+            resources.excludes.add("licenses/*.txt")
+            resources.excludes.add("licenses/*.xml")
+        }
+
         configureJvmTarget()
     }
 
@@ -111,14 +114,6 @@ fun Project.driveModule(
         if (enableTestFixtures) {
             testFixtures {
                 enable = true
-            }
-        }
-
-        defaultConfig {
-            javaCompileOptions {
-                annotationProcessorOptions {
-                    arguments["room.schemaLocation"] = "$projectDir/schemas"
-                }
             }
         }
 
@@ -136,15 +131,23 @@ fun Project.driveModule(
             this.buildConfig = buildConfig
         }
 
+        packaging {
+            resources.excludes.add("META-INF/licenses/**")
+            resources.excludes.add("META-INF/LICENSE*")
+            resources.excludes.add("META-INF/AL2.0")
+            resources.excludes.add("META-INF/LGPL2.1")
+            resources.excludes.add("licenses/*.txt")
+            resources.excludes.add("licenses/*.xml")
+        }
+
         configureJvmTarget()
     }
 
-    extensions.findByType(KaptExtension::class.java)?.let { kaptExt ->
-        kaptExt.arguments {
-            if (showkase) {
-                arg("skipPrivatePreviews", "true")
-            }
-        }
+    if (showkase) {
+        extensions.findByType<KspExtension>()?.arg("skipPrivatePreviews", "true")
+    }
+    if (room) {
+        extensions.findByType<KspExtension>()?.arg("room.schemaLocation", "$projectDir/schemas")
     }
 
     extensions.configure<TestedExtension> {
@@ -168,15 +171,6 @@ fun Project.driveModule(
         compileOptions {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
-        }
-
-        packagingOptions {
-            resources.excludes.add("META-INF/licenses/**")
-            resources.excludes.add("META-INF/LICENSE*")
-            resources.excludes.add("META-INF/AL2.0")
-            resources.excludes.add("META-INF/LGPL2.1")
-            resources.excludes.add("licenses/*.txt")
-            resources.excludes.add("licenses/*.xml")
         }
 
         testOptions {
@@ -204,14 +198,14 @@ fun Project.driveModule(
             }
         }
         if (room) {
-            add("kapt", catalog.findLibrary("androidx.room.compiler").get())
+            add("ksp", catalog.findLibrary("androidx.room.compiler").get())
             add("implementation", catalog.findLibrary("core.dataRoom").get())
             add("implementation", catalog.findLibrary("androidx.room.ktx").get())
         }
         if (hilt) {
             add("implementation", catalog.findLibrary("dagger.hilt.android").get())
-            add("kapt", catalog.findLibrary("dagger.hilt.compiler").get())
-            add("kapt", catalog.findLibrary("androidx.hilt.compiler").get())
+            add("ksp", catalog.findLibrary("dagger.hilt.compiler").get())
+            add("ksp", catalog.findLibrary("androidx.hilt.compiler").get())
         }
         if (workManager) {
             if (hilt) {
@@ -233,7 +227,7 @@ fun Project.driveModule(
         }
         if (showkase) {
             add("debugImplementation", catalog.findLibrary("showkase").get())
-            add("kaptDebug", catalog.findLibrary("showkaseProcessor").get())
+            add("kspDebug", catalog.findLibrary("showkaseProcessor").get())
         }
 
         // region Test
@@ -242,7 +236,7 @@ fun Project.driveModule(
         if (socialTest) {
             add("testImplementation", project(":drive:test"))
             add("testImplementation", catalog.findLibrary("dagger.hilt.android.testing").get())
-            add("kaptTest", catalog.findLibrary("dagger.hilt.compiler").get())
+            add("kspTest", catalog.findLibrary("dagger.hilt.compiler").get())
         }
         // endregion
     }

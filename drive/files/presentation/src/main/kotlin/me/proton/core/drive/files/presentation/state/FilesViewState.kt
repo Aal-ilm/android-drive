@@ -38,6 +38,7 @@ data class FilesViewState(
     val isTitleEncrypted: Boolean = false,
     val sorting: Sorting,
     @DrawableRes val navigationIconResId: Int,
+    val navigationContentDescription: String?,
     val drawerGesturesEnabled: Boolean,
     val listContentState: ListContentState,
     val listContentAppendingState: ListContentAppendingState,

@@ -38,4 +38,13 @@ class GetContactEmails @Inject constructor(
             refresh = false,
         ).first { contactEmail -> contactEmail.email == email }
     }
+
+    suspend operator fun invoke(userId: UserId, emails: Set<String>): Result<Map<String, ContactEmail>> = coRunCatching {
+        if (emails.isEmpty()) {
+            return@coRunCatching emptyMap()
+        }
+        contactRepository.getAllContactEmails(userId = userId, refresh = false)
+            .filter { contactEmail -> contactEmail.email in emails }
+            .associateBy { contactEmail -> contactEmail.email }
+    }
 }

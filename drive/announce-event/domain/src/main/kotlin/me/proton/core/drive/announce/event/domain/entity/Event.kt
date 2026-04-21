@@ -169,6 +169,15 @@ sealed class Event {
         override val occurredAt: TimestampMs = TimestampMs()
     }
 
+    @Serializable
+    data class DownloadFileProgress(
+        val downloadingCount: Int,
+        val progress: Percentage,
+    ) : Event() {
+        override val id: String = "$EVENT_ID_PREFIX${this.javaClass.simpleName.uppercase()}_1"
+        override val occurredAt: TimestampMs = TimestampMs()
+    }
+
     data object ForcedSignOut : Event() {
         override val id: String = "$EVENT_ID_PREFIX${this.javaClass.simpleName.uppercase()}_1"
         override val occurredAt: TimestampMs = TimestampMs()

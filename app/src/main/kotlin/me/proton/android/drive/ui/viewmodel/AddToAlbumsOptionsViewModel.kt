@@ -23,11 +23,13 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.photos.domain.usecase.AddPhotosToAlbum
 import me.proton.android.drive.photos.domain.usecase.AddToAlbumInfo
 import me.proton.android.drive.ui.viewevent.AddToAlbumsOptionsViewEvent
 import me.proton.android.drive.ui.viewstate.AddToAlbumsOptionsViewState
 import me.proton.core.domain.arch.DataResult
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.component.RunAction
@@ -47,8 +49,8 @@ import me.proton.core.drive.photo.domain.entity.PhotoListing
 import me.proton.core.drive.share.crypto.domain.usecase.GetPhotoShare
 import me.proton.core.drive.share.domain.entity.Share
 import javax.inject.Inject
-import me.proton.core.presentation.R as CorePresentation
 import me.proton.core.drive.i18n.R as I18N
+import me.proton.core.presentation.R as CorePresentation
 
 @HiltViewModel
 class AddToAlbumsOptionsViewModel @Inject constructor(
@@ -123,7 +125,9 @@ class AddToAlbumsOptionsViewModel @Inject constructor(
     }
 
     override suspend fun onSuccessfullyAdded(photoListings: List<PhotoListing.Volume>) {
-        deselectLinks(selectionId)
+        deselectLinks(selectionId).onFailure { error ->
+            error.log(VIEW_MODEL, "Failed to deselect links")
+        }
     }
 
     override fun getAlbumDetails(album: DriveLink.Album?): String? = album.details()

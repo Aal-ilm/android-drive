@@ -26,13 +26,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.viewevent.ConfirmStopSharingViewEvent
 import me.proton.android.drive.ui.viewstate.ConfirmStopSharingViewState
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.extension.require

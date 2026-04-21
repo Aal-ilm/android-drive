@@ -38,16 +38,19 @@ fun ApiException.log(
     message: String? = null,
     level: LoggerLevel? = null
 ): ApiException = also {
-    val loggerLevel = level ?: when (val cause = error) {
-        is ApiResult.Error.Certificate -> LoggerLevel.ERROR
-        is ApiResult.Error.Http -> when (cause.httpCode) {
-            502, 503 -> LoggerLevel.ERROR
-            else -> LoggerLevel.DEBUG
-        }
-        is ApiResult.Error.Parse -> LoggerLevel.ERROR
+    val loggerLevel = level ?: loggerLevel()
+    loggerLevel.log(tag, this, message)
+}
+
+internal fun ApiException.loggerLevel(): LoggerLevel = when (val cause = error) {
+    is ApiResult.Error.Certificate -> LoggerLevel.ERROR
+    is ApiResult.Error.Http -> when (cause.httpCode) {
+        502, 503 -> LoggerLevel.ERROR
         else -> LoggerLevel.DEBUG
     }
-    loggerLevel.log(tag, this, message)
+
+    is ApiResult.Error.Parse -> LoggerLevel.ERROR
+    else -> LoggerLevel.DEBUG
 }
 
 fun ApiException.isHttpError(range: IntRange): Boolean =

@@ -47,5 +47,6 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
         private const val BASE_ACTION = "proton.android.intent.action"
         const val ACTION_DELETE = "$BASE_ACTION.DELETE"
         const val ACTION_CANCEL_ALL = "$BASE_ACTION.CANCEL_ALL"
+        const val ACTION_CANCEL_ALL_DOWNLOADS = "$BASE_ACTION.CANCEL_ALL_DOWNLOADS"
     }
 }

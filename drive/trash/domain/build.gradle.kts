@@ -33,6 +33,7 @@ driveModule(
     api(project(":drive:link-trash:domain"))
     api(libs.androidx.paging.common)
     implementation(project(":drive:crypto:domain"))
+    implementation(project(":drive:feature-flag:domain"))
     implementation(project(":drive:message-queue:domain"))
     implementation(project(":drive:share:domain"))
 

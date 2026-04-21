@@ -147,6 +147,7 @@ fun UploadTo(
         Column(modifier = Modifier.fillMaxWidth()) {
             TopAppBar(
                 navigationIcon = painterResource(id = viewState.navigationIconResId),
+                navigationContentDescription = viewState.navigationContentDescription,
                 onNavigationIcon = viewEvent.onTopAppBarNavigation,
                 title = viewState.title,
                 isTitleEncrypted = viewState.isTitleEncrypted,

@@ -43,6 +43,7 @@ class LogEventHandler @Inject constructor(
 
     private fun Event.log(userId: UserId): Log? = when (this) {
         is Event.Download -> toLog(userId)
+        is Event.DownloadFileProgress -> toLog(userId)
         is Event.Upload -> toLog(userId)
         is Event.Throwable -> toLog(userId)
         is Event.Network -> toLog(userId)

@@ -32,6 +32,7 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
@@ -91,45 +92,53 @@ class UploadEventWorker @AssistedInject constructor(
         event = Event.TransferData,
     )
 
-    override suspend fun doWork(): Result = supervisorScope {
+    override suspend fun doWork(): Result {
         CoreLogger.d(
             tag = LogTag.NOTIFICATION,
             message = "Starting upload notification event worker",
         )
         setForeground()
         try {
-            val previousIds = mutableSetOf<Long>()
-            combine(getUploadFileLinksWithUriByPriority(
-                userId = userId,
-                states = setOf(
-                    UploadState.CREATING_NEW_FILE,
-                    UploadState.SPLITTING_URI_TO_BLOCKS,
-                    UploadState.EXTRACTING_TAGS,
-                    UploadState.ENCRYPTING_BLOCKS,
-                    UploadState.GETTING_UPLOAD_LINKS,
-                    UploadState.UPLOADING_BLOCKS,
-                    UploadState.UPDATING_REVISION,
-                ),
-                count = configurationProvider.uploadsInParallelPerVolume * 4,
-            ), getUploadFileLinksCount(userId)) { uploadFileLinks, count ->
-                uploadFileLinks to count
+            supervisorScope {
+                val previousIds = mutableSetOf<Long>()
+                val progressJobs = mutableMapOf<Long, Job>()
+                combine(getUploadFileLinksWithUriByPriority(
+                    userId = userId,
+                    states = setOf(
+                        UploadState.CREATING_NEW_FILE,
+                        UploadState.SPLITTING_URI_TO_BLOCKS,
+                        UploadState.EXTRACTING_TAGS,
+                        UploadState.ENCRYPTING_BLOCKS,
+                        UploadState.GETTING_UPLOAD_LINKS,
+                        UploadState.UPLOADING_BLOCKS,
+                        UploadState.UPDATING_REVISION,
+                    ),
+                    count = configurationProvider.uploadsInParallelPerVolume * 4,
+                ), getUploadFileLinksCount(userId)) { uploadFileLinks, count ->
+                    uploadFileLinks to count
+                }
+                    // do not collect forever from database
+                    .takeWhile { (_, count) -> count.totalWithAnnounce != 0 }
+                    .map { (uploadFileLinks, _) -> uploadFileLinks.map { uploadFileLink -> uploadFileLink.id } }
+                    .distinctUntilChanged()
+                    .onEach { uploadFileLinksIds ->
+                        (uploadFileLinksIds - previousIds).forEach { uploadFileLinkId ->
+                            progressJobs[uploadFileLinkId] = async { announceProgress(uploadFileLinkId) }
+                        }
+                        (previousIds - uploadFileLinksIds.toSet()).forEach { removedId ->
+                            progressJobs.remove(removedId)?.cancel()
+                        }
+                        previousIds.clear()
+                        previousIds.addAll(uploadFileLinksIds)
+                    }.onCompletion {
+                        progressJobs.values.forEach { it.cancel() }
+                        progressJobs.clear()
+                        CoreLogger.d(LogTag.NOTIFICATION, "Stop observing upload file links")
+                    }.launchIn(this)
             }
-                // do not collect forever from database
-                .takeWhile { (_, count) -> count.totalWithAnnounce != 0 }
-                .map { (uploadFileLinks, _) -> uploadFileLinks.map { uploadFileLink -> uploadFileLink.id } }
-                .distinctUntilChanged()
-                .onEach { uploadFileLinksIds ->
-                    (uploadFileLinksIds - previousIds).forEach { uploadFileLinkId ->
-                        async { announceProgress(uploadFileLinkId) }
-                    }
-                    previousIds.clear()
-                    previousIds.addAll(uploadFileLinksIds)
-                }.onCompletion {
-                    CoreLogger.d(LogTag.NOTIFICATION, "Stop observing upload file links")
-                }.launchIn(this)
         } catch (e: CancellationException) {
             CoreLogger.d(LogTag.NOTIFICATION, e, e.message.orEmpty())
-            cancel(e)
+            throw e
         } finally {
             transferDataNotification.getOrNull(LogTag.NOTIFICATION)
                 ?.first
@@ -138,7 +147,7 @@ class UploadEventWorker @AssistedInject constructor(
                 }
         }
         CoreLogger.d(LogTag.NOTIFICATION, "Upload notification event worker finished")
-        Result.success()
+        return Result.success()
     }
 
     private suspend fun announceProgress(uploadFileLinkId: Long) {

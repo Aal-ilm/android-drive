@@ -21,6 +21,7 @@ package me.proton.core.drive.drivelink.offline.domain.usecase
 import kotlinx.coroutines.flow.first
 import me.proton.core.drive.base.domain.extension.toResult
 import me.proton.core.drive.base.domain.log.LogTag.DOWNLOAD
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.drivelink.domain.entity.DriveLink
 import me.proton.core.drive.drivelink.domain.usecase.GetDriveLink
 import me.proton.core.drive.drivelink.domain.usecase.GetDriveLinks
@@ -42,22 +43,30 @@ class UpdateOfflineContent @Inject constructor(
     private val download: Download,
     private val cancelDownload: CancelDownload,
 ) {
-    suspend operator fun invoke(linkId: LinkId) = invoke(listOf(linkId))
+    suspend operator fun invoke(linkId: LinkId) = coRunCatching {
+        invoke(listOf(linkId)).getOrThrow()
+    }
 
     // JvmName is required otherwise there is a signature clash with the other invoke
     @JvmName("updateContentForIds")
-    suspend operator fun invoke(linkIds: List<LinkId>) = linkIds.takeIfNotEmpty()?.let {
-        invoke(getDriveLinks(linkIds).first())
+    suspend operator fun invoke(linkIds: List<LinkId>) = coRunCatching {
+        linkIds.takeIfNotEmpty()?.let {
+            invoke(getDriveLinks(linkIds).first()).getOrThrow()
+        }
     }
 
-    suspend operator fun invoke(driveLinks: List<DriveLink>) {
+    suspend operator fun invoke(driveLinks: List<DriveLink>) = coRunCatching {
         driveLinks.forEach { driveLink ->
             val firstMarkedOfflineLink = getFirstMarkedOfflineLink(driveLink.id)
             if (firstMarkedOfflineLink != null) {
                 getDriveLink(firstMarkedOfflineLink.id).toResult().onSuccess { parent ->
-                    download(parent)
+                    download(parent).getOrThrow()
                 }.onFailure { error ->
-                    CoreLogger.w(DOWNLOAD, error, "Cannot get drive link for ${firstMarkedOfflineLink.id.id}")
+                    CoreLogger.w(
+                        DOWNLOAD,
+                        error,
+                        "Cannot get drive link for ${firstMarkedOfflineLink.id.id}"
+                    )
                 }
             } else if (driveLink is DriveLink.File) {
                 cancelDownload(driveLink)

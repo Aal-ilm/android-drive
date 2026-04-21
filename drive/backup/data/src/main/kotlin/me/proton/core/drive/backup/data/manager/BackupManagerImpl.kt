@@ -103,7 +103,7 @@ class BackupManagerImpl @Inject constructor(
     }
 
     override fun sync(backupFolder: BackupFolder, uploadPriority: Long) {
-        CoreLogger.i(BACKUP, "Sync bucket: ${backupFolder.bucketId.toBase36()}}")
+        CoreLogger.i(BACKUP, "Sync bucket: ${backupFolder.bucketId.toBase36()}")
         workManager
             .beginUniqueWork(
                 backupFolder.uniqueScanWorkName(),

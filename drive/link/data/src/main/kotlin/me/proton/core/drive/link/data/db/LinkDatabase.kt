@@ -21,6 +21,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import me.proton.core.data.room.db.Database
 import me.proton.core.data.room.db.migration.DatabaseMigration
 import me.proton.core.drive.base.data.db.Column.CAPTURE_TIME
+import me.proton.core.drive.base.data.db.Column.CHECKSUM_VERIFIED
 import me.proton.core.drive.base.data.db.Column.CONTENT_HASH
 import me.proton.core.drive.base.data.db.Column.MAIN_PHOTO_LINK_ID
 import me.proton.core.drive.base.data.db.Column.SHARE_URL_ID
@@ -127,6 +128,16 @@ interface LinkDatabase : Database {
                 database.execSQL("""
                     CREATE INDEX IF NOT EXISTS `index_LinkTagEntity_tag_share_id_tag_link_id` ON `LinkTagEntity` (`tag_share_id`, `tag_link_id`)
                 """.trimIndent())
+            }
+        }
+
+        val MIGRATION_4 = object : DatabaseMigration {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                        ALTER TABLE `LinkFilePropertiesEntity` ADD COLUMN $CHECKSUM_VERIFIED INTEGER NOT NULL DEFAULT 0
+                    """.trimIndent()
+                )
             }
         }
     }

@@ -148,6 +148,16 @@
   <string name="notification_content_text_backup_paused_background_restrictions">Back-up kan niet op de achtergrond worden uitgevoerd</string>
   <string name="notification_content_text_backup_preparing">Back-up voorbereiden</string>
   <string name="notification_content_text_backup_failed_migration">Migratie in uitvoering, update uw applicatie</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">%1$d bestand downloaden</item>
+    <item quantity="other">%1$d bestanden downloaden</item>
+  </plurals>
   <string name="notification_content_title_download_complete">Download voltooid</string>
   <string name="notification_content_title_forced_sign_out">Inloggen</string>
   <string name="notification_content_text_forced_sign_out">Sorry dat ik stoor! We hadden een probleem met synchroniseren - log opnieuw in en we zullen alles soepel laten verlopen.</string>

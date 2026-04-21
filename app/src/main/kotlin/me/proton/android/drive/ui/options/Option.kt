@@ -650,7 +650,7 @@ fun Iterable<Option>.filterPermissions(
         Option.ShareMultiplePhotos -> permissions.isAdmin
         Option.TagPhotoFile -> permissions.isAdmin
         Option.TakeAPhoto -> permissions.canWrite
-        Option.Trash -> permissions.isAdmin
+        Option.Trash -> permissions.canWrite
         Option.UploadFile -> permissions.canWrite
         Option.UploadFolder -> permissions.canWrite
     }

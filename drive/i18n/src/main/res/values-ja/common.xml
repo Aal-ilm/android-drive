@@ -41,7 +41,7 @@
   <string name="common_all">すべて</string>
   <string name="common_unknown">不明</string>
   <string name="common_month">1ヶ月</string>
-  <string name="common_year">Year</string>
+  <string name="common_year">年</string>
   <!-- endregion -->
   <!-- region Common actions -->
   <string name="common_ok_action">OK</string>
@@ -77,8 +77,8 @@
   <string name="common_save_all_action">すべて保存</string>
   <string name="common_add_to_albums_action">アルバムに追加</string>
   <string name="common_tag_photo_action">写真のタグをスキャン</string>
-  <string name="common_save_as_action">Save as</string>
-  <string name="common_open_action">Open</string>
+  <string name="common_save_as_action">として保存</string>
+  <string name="common_open_action">開く</string>
   <!-- endregion -->
   <!-- region Common file types -->
   <string name="common_type_audio">音声</string>

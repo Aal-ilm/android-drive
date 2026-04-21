@@ -23,12 +23,10 @@ import me.proton.core.data.room.db.Database
 import me.proton.core.data.room.db.extension.dropTable
 import me.proton.core.data.room.db.migration.DatabaseMigration
 import me.proton.core.drive.drivelink.photo.data.db.dao.AlbumPhotoListingRemoteKeyDao
-import me.proton.core.drive.drivelink.photo.data.db.dao.PhotoListingRemoteKeyDao
-import me.proton.core.drive.drivelink.photo.data.db.dao.TaggedPhotoListingRemoteKeyDao
+import me.proton.core.drive.drivelink.photo.data.db.dao.PhotoListingAnchorDao
 
 interface DriveLinkPhotoDatabase : Database {
-    val photoListingRemoteKeyDao: PhotoListingRemoteKeyDao
-    val taggedPhotoListingRemoteKeyDao: TaggedPhotoListingRemoteKeyDao
+    val photoListingAnchorDao: PhotoListingAnchorDao
     val albumPhotoListingRemoteKeyDao: AlbumPhotoListingRemoteKeyDao
 
     companion object {
@@ -155,6 +153,26 @@ interface DriveLinkPhotoDatabase : Database {
                     CREATE UNIQUE INDEX IF NOT EXISTS `index_TaggedPhotoListingRemoteKeyEntity_key_user_id_volume_id_share_id_tag_link_id` 
                     ON `TaggedPhotoListingRemoteKeyEntity` (`key`, `user_id`, `volume_id`, `share_id`, `tag`, `link_id`)
                 """.trimIndent())
+            }
+        }
+
+        val MIGRATION_4 = object : DatabaseMigration {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `PhotoListingAnchorEntity` (
+                    `key` TEXT NOT NULL,
+                    `user_id` TEXT NOT NULL,
+                    `volume_id` TEXT NOT NULL,
+                    `next_key` TEXT,
+                    `is_complete` INTEGER NOT NULL,
+                    PRIMARY KEY(`key`, `volume_id`),
+                    FOREIGN KEY(`user_id`) REFERENCES `AccountEntity`(`userId`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """.trimIndent()
+                )
+                database.dropTable("PhotoListingRemoteKeyEntity")
+                database.dropTable("TaggedPhotoListingRemoteKeyEntity")
             }
         }
     }

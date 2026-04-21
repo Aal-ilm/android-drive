@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.proton.android.drive.extension.getDefaultMessage
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.photos.domain.usecase.RemovePhotosFromAlbum
 import me.proton.android.drive.photos.presentation.extension.processRemove
 import me.proton.android.drive.ui.options.Option
@@ -36,7 +37,6 @@ import me.proton.android.drive.ui.options.filterAll
 import me.proton.android.drive.ui.options.filterPermissions
 import me.proton.android.drive.ui.options.filterPhotoTag
 import me.proton.android.drive.ui.options.filterShare
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
@@ -105,8 +105,15 @@ class MultipleFileOrFolderOptionsViewModel @Inject constructor(
                         runAction = runAction,
                         moveToTrash = {
                             viewModelScope.launch {
-                                sendToTrash(userId, driveLinks)
-                                deselectLinks(selectionId)
+                                sendToTrash(userId, driveLinks).onFailure { error ->
+                                    error.log(
+                                        VIEW_MODEL,
+                                        "Failed to send to trash for ${driveLinks.map { it.id.id }}"
+                                    )
+                                }
+                                deselectLinks(selectionId).onFailure { error ->
+                                    error.log(VIEW_MODEL, "Failed to deselect links")
+                                }
                             }
                         },
                     )
@@ -121,7 +128,9 @@ class MultipleFileOrFolderOptionsViewModel @Inject constructor(
                         tagPhotos = {
                             viewModelScope.launch {
                                 scanPhotoForTags(driveLinks)
-                                deselectLinks(selectionId)
+                                deselectLinks(selectionId).onFailure { error ->
+                                    error.log(VIEW_MODEL, "Failed to deselect links")
+                                }
                             }
                         }
                     )
@@ -131,7 +140,12 @@ class MultipleFileOrFolderOptionsViewModel @Inject constructor(
                             viewModelScope.launch {
                                 exportToDownload(
                                     driveLinks.filterIsInstance<DriveLink.File>().map { driveLink -> driveLink.id }
-                                )
+                                ).onFailure { error ->
+                                    error.log(
+                                        VIEW_MODEL,
+                                        "Failed to export to download for ${driveLinks.map { it.id.id }}"
+                                    )
+                                }
                             }
                         }
                     )
@@ -149,7 +163,9 @@ class MultipleFileOrFolderOptionsViewModel @Inject constructor(
                                     driveLinks
                                         .filterIsInstance<DriveLink.File>()
                                 )
-                                deselectLinks(selectionId)
+                                deselectLinks(selectionId).onFailure { error ->
+                                    error.log(VIEW_MODEL, "Failed to deselect links")
+                                }
                             }
                         },
                     )

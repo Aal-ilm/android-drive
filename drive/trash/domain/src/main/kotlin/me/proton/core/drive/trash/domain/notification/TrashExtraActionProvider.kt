@@ -43,10 +43,12 @@ class TrashExtraActionProvider @Inject constructor(
         else -> null
     }
 
-    private fun TrashFilesExtra.provideAction(): ActionProvider.Action = if (exception == null) {
-        ActionProvider.Action(I18N.string.trash_action_undo) {
-            restoreFromTrash(userId, volumeId, links)
-        }
+    private fun TrashFilesExtra.provideAction(): ActionProvider.Action? = if (exception == null) {
+        if (allowsUndo) {
+            ActionProvider.Action(I18N.string.trash_action_undo) {
+                restoreFromTrash(userId, volumeId, links)
+            }
+        } else null // Undo is not allowed, usually if file does not belong to user volumes
     } else {
         ActionProvider.Action(I18N.string.trash_action_retry) {
             sendToTrash(userId, volumeId, links)

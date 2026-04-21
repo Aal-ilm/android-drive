@@ -174,5 +174,5 @@
     <item quantity="other">Migrando %1$s arquivos e %2$s aguardando o download.</item>
   </plurals>
   <string name="photos_folder_selection_title">Fazer backup de fotos de</string>
-  <string name="photos_folder_selection_description">Select folders to back up and their photos will appear in the Photos tab.</string>
+  <string name="photos_folder_selection_description">Selecione pastas para fazer backup e suas fotos aparecerão na guia Fotos.</string>
 </resources>

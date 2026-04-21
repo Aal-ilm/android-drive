@@ -18,6 +18,7 @@
 
 package me.proton.core.drive.drivelink.domain.usecase
 
+import me.proton.core.contact.domain.entity.ContactEmail
 import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.contact.domain.usecase.GetContactEmails
 import me.proton.core.drive.drivelink.domain.entity.DriveLink
@@ -46,6 +47,24 @@ class UpdateShareUserDisplayName @Inject constructor(
         }
     }
 
+    suspend operator fun invoke(driveLinks: List<DriveLink>): List<DriveLink> {
+        val displayNameByEmail: Map<String, ContactEmail> = driveLinks
+            .groupBy { it.userId }
+            .entries
+            .flatMap { (userId, links) ->
+                val emails = links.mapNotNull { (it.shareUser as? ShareUser.Member)?.inviter }.toSet()
+                getContactEmails(userId, emails).getOrNull().orEmpty().entries
+            }
+            .associate { (email, contact) -> email to contact }
+        return driveLinks.map { link ->
+            when (link) {
+                is DriveLink.Folder -> link.copy(shareUser = link.shareUser.updateDisplayName(displayNameByEmail))
+                is DriveLink.File -> link.copy(shareUser = link.shareUser.updateDisplayName(displayNameByEmail))
+                is DriveLink.Album -> link.copy(shareUser = link.shareUser.updateDisplayName(displayNameByEmail))
+            }
+        }
+    }
+
     private suspend fun ShareUser?.updateDisplayName(userId: UserId): ShareUser? = when (this) {
         is ShareUser.Member -> copy(
             displayName = getContactEmails(
@@ -53,6 +72,13 @@ class UpdateShareUserDisplayName @Inject constructor(
                 email = inviter,
             ).getOrNull()?.name ?: inviter
         )
+        else -> this
+    }
+
+    private fun ShareUser?.updateDisplayName(
+        displayNames: Map<String, ContactEmail>,
+    ): ShareUser? = when (this) {
+        is ShareUser.Member -> copy(displayName = displayNames[inviter]?.name ?: inviter)
         else -> this
     }
 }

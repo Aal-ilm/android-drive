@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.common.onClick
 import me.proton.android.drive.ui.effect.HomeEffect
 import me.proton.android.drive.ui.effect.HomeTabViewModel
@@ -57,18 +58,18 @@ import me.proton.core.drive.base.domain.extension.onFailure
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.presentation.common.getThemeDrawableId
+import me.proton.core.drive.base.presentation.effect.ListEffect
+import me.proton.core.drive.base.presentation.state.ListContentAppendingState
+import me.proton.core.drive.base.presentation.state.ListContentState
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
+import me.proton.core.drive.base.presentation.viewmodel.onLoadState
 import me.proton.core.drive.drivelink.crypto.domain.usecase.GetDecryptedDriveLink
 import me.proton.core.drive.drivelink.domain.entity.DriveLink
 import me.proton.core.drive.drivelink.domain.extension.isNameEncrypted
 import me.proton.core.drive.drivelink.list.domain.usecase.GetPagedDriveLinksList
+import me.proton.core.drive.files.domain.usecase.ToFirstItemMetricsNotifier
 import me.proton.core.drive.files.presentation.event.FilesViewEvent
 import me.proton.core.drive.files.presentation.state.FilesViewState
-import me.proton.core.drive.base.presentation.state.ListContentAppendingState
-import me.proton.core.drive.base.presentation.state.ListContentState
-import me.proton.core.drive.base.presentation.effect.ListEffect
-import me.proton.core.drive.base.presentation.viewmodel.onLoadState
-import me.proton.core.drive.files.domain.usecase.ToFirstItemMetricsNotifier
 import me.proton.core.drive.i18n.R
 import me.proton.core.drive.link.domain.entity.FolderId
 import me.proton.core.drive.link.domain.extension.userId
@@ -76,7 +77,6 @@ import me.proton.core.drive.observability.domain.metrics.common.mobile.performan
 import me.proton.core.drive.share.domain.entity.ShareId
 import me.proton.core.drive.sorting.domain.entity.Sorting
 import me.proton.core.drive.sorting.domain.usecase.GetSorting
-import me.proton.core.util.kotlin.CoreLogger
 import me.proton.drive.android.settings.domain.entity.LayoutType
 import me.proton.drive.android.settings.domain.usecase.GetLayoutType
 import me.proton.drive.android.settings.domain.usecase.ToggleLayoutType
@@ -114,6 +114,7 @@ class SyncedFoldersViewModel @Inject constructor(
         title = folderName,
         titleResId = R.string.title_offline_available,
         navigationIconResId = me.proton.core.presentation.R.drawable.ic_arrow_back,
+        navigationContentDescription = appContext.getString(I18N.string.common_back_action),
         drawerGesturesEnabled = true,
         sorting = Sorting.DEFAULT,
         listContentState = listContentState.value,
@@ -254,7 +255,14 @@ class SyncedFoldersViewModel @Inject constructor(
     }
 
     private fun onToggleLayout() {
-        viewModelScope.launch { toggleLayoutType(userId = userId, currentLayoutType = layoutType.value) }
+        viewModelScope.launch {
+            toggleLayoutType(
+                userId = userId,
+                currentLayoutType = layoutType.value,
+            ).onFailure { error ->
+                error.log(VIEW_MODEL, "Failed to toggle layout type $layoutType")
+            }
+        }
     }
 
     private fun retryList() {

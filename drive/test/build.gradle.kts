@@ -21,7 +21,7 @@ plugins {
     id("com.android.library")
 }
 apply(plugin = "kotlin-android")
-apply(plugin = "kotlin-kapt")
+apply(plugin = "com.google.devtools.ksp")
 apply(plugin = "kotlinx-serialization")
 
 android {
@@ -34,16 +34,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    (this as ExtensionAware).extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions>(
-        "kotlinOptions"
-    ) {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
 
     sourceSets {
         getByName("test").resources.srcDirs(File(rootDir, "drive/test/resources"))
     }
 
+}
+
+extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension> {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
 
 dependencies {
@@ -87,13 +88,13 @@ dependencies {
 
     implementation(libs.dagger.hilt.android)
     implementation(libs.dagger.hilt.android.testing)
-    add("kapt", libs.dagger.hilt.compiler)
-    add("kapt", libs.androidx.hilt.compiler)
+    add("ksp", libs.dagger.hilt.compiler)
+    add("ksp", libs.androidx.hilt.compiler)
 
     api(libs.androidx.test.core.ktx)
     api(libs.junit)
 
     testImplementation(libs.robolectric)
     testImplementation(libs.dagger.hilt.android.testing)
-    add("kaptTest", libs.dagger.hilt.compiler)
+    add("kspTest", libs.dagger.hilt.compiler)
 }

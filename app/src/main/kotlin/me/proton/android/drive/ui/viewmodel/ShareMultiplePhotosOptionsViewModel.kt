@@ -24,11 +24,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.photos.domain.usecase.AddPhotosToAlbum
 import me.proton.android.drive.photos.domain.usecase.AddToAlbumInfo
 import me.proton.android.drive.ui.viewevent.ShareMultiplePhotosOptionsViewEvent
 import me.proton.android.drive.ui.viewstate.ShareMultiplePhotosOptionsViewState
 import me.proton.core.domain.arch.DataResult
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.component.RunAction
@@ -117,7 +119,9 @@ class ShareMultiplePhotosOptionsViewModel @Inject constructor(
     }
 
     override suspend fun onSuccessfullyAdded(photoListings: List<PhotoListing.Volume>) {
-        deselectLinks(selectionId)
+        deselectLinks(selectionId).onFailure { error ->
+            error.log(VIEW_MODEL, "Failed to deselect links")
+        }
     }
 
     override fun getAlbumDetails(album: DriveLink.Album?): String? = album.details()

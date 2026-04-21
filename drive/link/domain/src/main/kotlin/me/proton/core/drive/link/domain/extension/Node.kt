@@ -20,12 +20,18 @@ package me.proton.core.drive.link.domain.extension
 
 import me.proton.core.drive.link.domain.entity.FileId
 import me.proton.core.drive.link.domain.entity.FolderId
+import me.proton.core.drive.link.domain.entity.LinkId
 import me.proton.core.drive.share.domain.entity.ShareId
 import me.proton.drive.sdk.entity.FileNode
 import me.proton.drive.sdk.entity.FolderNode
 import me.proton.drive.sdk.entity.Node
 
-fun FolderNode.id(shareId: ShareId) = FolderId(shareId, linkId())
-fun FileNode.id(shareId: ShareId) = FileId(shareId, linkId())
+fun Node.linkId(shareId: ShareId): LinkId = when (this) {
+    is FileNode -> linkId(shareId)
+    is FolderNode -> linkId(shareId)
+}
 
-private fun Node.linkId(): String = uid.split("~").last()
+fun FolderNode.linkId(shareId: ShareId) = FolderId(shareId, linkId)
+fun FileNode.linkId(shareId: ShareId) = FileId(shareId, linkId)
+
+private val Node.linkId: String get() = uid.linkId

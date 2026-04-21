@@ -23,6 +23,7 @@ import me.proton.core.drive.base.domain.provider.ProtonDriveClientProvider
 import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.eventmanager.base.domain.usecase.UpdateEventAction
 import me.proton.core.drive.link.domain.usecase.ValidateLinkName
+import me.proton.drive.sdk.entity.NodeUid
 import javax.inject.Inject
 
 class RenameLinkSdk @Inject constructor(
@@ -32,7 +33,7 @@ class RenameLinkSdk @Inject constructor(
 ) {
     suspend operator fun invoke(
         userId: UserId,
-        nodeUid: String,
+        nodeUid: NodeUid,
         linkName: String,
     ): Result<Unit> = coRunCatching {
         // TODO: Remove when SDK validate name

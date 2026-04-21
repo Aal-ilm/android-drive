@@ -29,14 +29,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.navigation.Screen
 import me.proton.android.drive.ui.viewevent.BackupIssuesViewEvent
 import me.proton.android.drive.ui.viewstate.BackupIssuesViewState
 import me.proton.core.drive.backup.domain.usecase.GetAllFailedFiles
 import me.proton.core.drive.backup.domain.usecase.RetryBackup
 import me.proton.core.drive.base.data.extension.getDefaultMessage
-import me.proton.core.drive.base.data.extension.log
-import me.proton.core.drive.base.domain.log.LogTag.BACKUP
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.extension.require
@@ -70,7 +70,7 @@ class BackupIssuesViewModel @Inject constructor(
                 backupFile.uriString.toUri()
             })
         }.catch { error ->
-            error.log(BACKUP, "Cannot get all failed files")
+            error.log(VIEW_MODEL, "Cannot get all failed files")
             broadcastMessages(
                 userId = userId,
                 message = error.getDefaultMessage(
@@ -95,7 +95,7 @@ class BackupIssuesViewModel @Inject constructor(
             retryBackup(folderId).onSuccess {
                 onSuccess()
             }.onFailure { error ->
-                error.log(BACKUP, "Cannot retry on backup")
+                error.log(VIEW_MODEL, "Cannot retry on backup")
                 broadcastMessages(
                     userId = userId,
                     message = error.getDefaultMessage(

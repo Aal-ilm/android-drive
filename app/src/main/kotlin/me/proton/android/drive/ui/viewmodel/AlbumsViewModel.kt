@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.photos.domain.usecase.GetPhotosDriveLink
 import me.proton.android.drive.photos.presentation.state.AlbumsItem
 import me.proton.android.drive.photos.presentation.viewevent.AlbumsViewEvent
@@ -56,7 +57,7 @@ import me.proton.core.domain.arch.mapSuccessValueOrNull
 import me.proton.core.domain.arch.onSuccess
 import me.proton.core.drive.base.data.extension.getDefaultMessage
 import me.proton.core.drive.base.data.extension.isRetryable
-import me.proton.core.drive.base.data.extension.log
+import me.proton.core.drive.base.data.extension.log as logResult
 import me.proton.core.drive.base.domain.extension.filterSuccessOrError
 import me.proton.core.drive.base.domain.extension.mapWithPrevious
 import me.proton.core.drive.base.domain.extension.onFailure
@@ -137,6 +138,7 @@ class AlbumsViewModel @Inject constructor(
             isRefreshEnabled = listContentState.value != ListContentState.Loading,
             placeholderImageResId = emptyStateImageResId,
             navigationIconResId = CorePresentation.drawable.ic_proton_hamburger,
+            navigationContentDescription = appContext.getString(I18N.string.common_open_side_menu_action),
             filters = listOf(
                 AlbumsFilter(
                     AlbumListing.Filter.ALL,
@@ -205,7 +207,7 @@ class AlbumsViewModel @Inject constructor(
                                 contentState = listContentState,
                                 shareType = Share.Type.PHOTO,
                             )
-                            error.log(VIEW_MODEL, "Cannot get drive link")
+                            error.logResult(VIEW_MODEL, "Cannot get drive link")
                         }
                     return@mapWithPrevious null
                 }
@@ -347,7 +349,7 @@ class AlbumsViewModel @Inject constructor(
                 )
                     .onFailure { error ->
                         isRefreshing.value = false
-                        error.log(VIEW_MODEL)
+                        error.log(VIEW_MODEL, "Cannot get all album listings")
                         broadcastMessages(
                             userId = userId,
                             message = error.getDefaultMessage(

@@ -22,6 +22,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.base.domain.extension.onFailure
 import me.proton.core.drive.base.domain.extension.toResult
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.link.domain.entity.LinkId
 import me.proton.core.drive.linktrash.domain.entity.TrashState
 import me.proton.core.drive.linktrash.domain.repository.LinkTrashRepository
@@ -38,12 +39,13 @@ class DeleteFromTrash @Inject constructor(
     private val getShare: GetShare,
 ) {
 
-    suspend operator fun invoke(userId: UserId, linkId: LinkId) =
-        invoke(userId, listOf(linkId))
+    suspend operator fun invoke(userId: UserId, linkId: LinkId) = coRunCatching {
+        invoke(userId, listOf(linkId)).getOrThrow()
+    }
 
-    suspend operator fun invoke(userId: UserId, linkIds: List<LinkId>) {
-        linkIds.groupBy { linkId -> linkId.shareId }.forEach { (share, groupedLinks) ->
-            invoke(userId, share, groupedLinks)
+    suspend operator fun invoke(userId: UserId, linkIds: List<LinkId>) = coRunCatching {
+        linkIds.groupBy { linkId -> linkId.shareId }.forEach { (shareId, groupedLinks) ->
+            invoke(userId, shareId, groupedLinks).getOrThrow()
         }
     }
 
@@ -51,9 +53,9 @@ class DeleteFromTrash @Inject constructor(
         userId: UserId,
         shareId: ShareId,
         linkIds: List<LinkId>,
-    ) {
+    ) = coRunCatching {
         getShare(shareId).toResult().getOrNull()?.let { share ->
-            invoke(userId, share.volumeId, linkIds)
+            invoke(userId, share.volumeId, linkIds).getOrThrow()
         }
     }
 
@@ -61,7 +63,7 @@ class DeleteFromTrash @Inject constructor(
         userId: UserId,
         volumeId: VolumeId,
         linkIds: List<LinkId>,
-    ) {
+    ) = coRunCatching {
         linkTrashRepository.insertOrUpdateTrashState(volumeId, linkIds, TrashState.DELETING)
         trashManager.delete(userId, volumeId, linkIds).onFailure {
             linkTrashRepository.insertOrUpdateTrashState(volumeId, linkIds, TrashState.TRASHED)

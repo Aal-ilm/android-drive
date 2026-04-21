@@ -22,7 +22,7 @@ import me.proton.core.drive.base.domain.extension.toResult
 import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.link.domain.entity.FolderId
 import me.proton.core.drive.link.domain.entity.Link
-import me.proton.core.drive.link.domain.extension.id
+import me.proton.core.drive.link.domain.extension.linkId
 import me.proton.core.drive.link.domain.extension.nodeUid
 import me.proton.core.drive.link.domain.extension.userId
 import me.proton.core.drive.link.domain.usecase.GetLink
@@ -50,7 +50,7 @@ class CreateFolder @Inject constructor(
                 folderName = folderName,
                 shouldUpdateEvent = shouldUpdateEvent,
             ).getOrThrow().let { (name, folderNode) ->
-                name to folderNode.id(parentFolder.id.shareId)
+                name to folderNode.linkId(parentFolder.id.shareId)
             }
         } else {
             createFolderLegacy(

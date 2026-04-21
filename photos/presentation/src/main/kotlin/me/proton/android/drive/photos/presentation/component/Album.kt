@@ -171,6 +171,7 @@ fun Album(
         isNameEncrypted = viewState.isNameEncrypted,
         details = viewState.details,
         navigationIcon = viewState.navigationIconResId,
+        navigationContentDescription = viewState.navigationContentDescription,
         title = viewState.title,
         coverLinkId = viewState.coverLinkId,
         items = items,
@@ -209,6 +210,7 @@ fun Album(
     isNameEncrypted: Boolean,
     details: String,
     navigationIcon: Int?,
+    navigationContentDescription: String?,
     title: String?,
     coverLinkId: FileId?,
     items: LazyPagingItems<PhotosItem.PhotoListing>,
@@ -260,6 +262,7 @@ fun Album(
         isNameEncrypted = isNameEncrypted,
         details = details,
         navigationIcon = navigationIcon,
+        navigationContentDescription = navigationContentDescription,
         title = title,
         coverLinkId = coverLinkId,
         items = items,
@@ -298,6 +301,7 @@ fun Album(
     isNameEncrypted: Boolean,
     details: String,
     navigationIcon: Int?,
+    navigationContentDescription: String?,
     title: String?,
     coverLinkId: FileId?,
     items: LazyPagingItems<PhotosItem.PhotoListing>,
@@ -358,6 +362,7 @@ fun Album(
         topComposable = {
             AlbumTopBar(
                 navigationIcon = navigationIcon,
+                navigationContentDescription = navigationContentDescription,
                 title = title,
                 coverLink = coverLinkId?.let { driveLinksMap[coverLinkId] },
                 topComposableHeight = topComposableHeight,
@@ -486,6 +491,7 @@ fun Album(
 @Composable
 fun BoxScope.AlbumTopBar(
     @DrawableRes navigationIcon: Int?,
+    navigationContentDescription: String?,
     title: String?,
     coverLink: DriveLink?,
     topComposableHeight: Dp,
@@ -528,6 +534,7 @@ fun BoxScope.AlbumTopBar(
         )
         TopAppBar(
             navigationIcon = navigationIcon?.let { painterResource(navigationIcon) },
+            navigationContentDescription = navigationContentDescription,
             onNavigationIcon = onTopAppBarNavigation,
             title = { modifier ->
                 title?.let {

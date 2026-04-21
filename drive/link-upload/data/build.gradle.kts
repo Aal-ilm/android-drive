@@ -31,4 +31,5 @@ driveModule(
 ) {
     api(project(":drive:link:data"))
     api(project(":drive:link-upload:domain"))
+    api(project(":drive:share:data"))
 }

@@ -114,6 +114,7 @@ private fun TopAppBar(
         navigationIcon = if (viewState.navigationIconResId != 0) {
             painterResource(id = viewState.navigationIconResId)
         } else null,
+        navigationContentDescription = viewState.navigationContentDescription,
         onNavigationIcon = viewEvent.onTopAppBarNavigation,
         title = viewState.title ?: "",
         isTitleEncrypted = viewState.isTitleEncrypted,

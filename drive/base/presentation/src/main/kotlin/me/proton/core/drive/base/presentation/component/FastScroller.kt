@@ -184,7 +184,7 @@ fun FastScroller(
             (snappedOffsetY / stepPx).roundToInt()
         }
     }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(state) {
         combine(
             snapshotFlow { snappedOffsetY }.map { (it / stepPx).roundToInt() },
             snapshotFlow { state.firstVisibleItemIndex }

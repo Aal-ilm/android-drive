@@ -26,10 +26,8 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import me.proton.android.drive.log.DriveLogTag.UI
 import me.proton.core.accountmanager.domain.AccountManager
-import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.base.data.entity.LoggerLevel.WARNING
 import me.proton.core.drive.base.data.extension.log
-import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.util.kotlin.CoreLogger
 import javax.inject.Inject
 
@@ -48,8 +46,9 @@ class ShowRatingBooster @Inject constructor(
                             if (task.isSuccessful) {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     accountManager.getPrimaryUserId().firstOrNull()?.let { userId ->
-                                        markRatingBoosterAsShown(userId = userId)
-                                            .getOrNull(UI, "Marking rating booster as shown failed")
+                                        markRatingBoosterAsShown(userId = userId).onFailure { error ->
+                                            error.log(UI, "Marking rating booster as shown failed")
+                                        }
                                     } ?: {
                                         CoreLogger.w(UI, "User Id is null, please investigate")
                                     }()

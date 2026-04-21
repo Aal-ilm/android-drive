@@ -58,8 +58,9 @@ import me.proton.core.drive.linkupload.domain.entity.UploadFileLink
 import me.proton.core.drive.linkupload.domain.entity.UploadState
 import me.proton.core.drive.linkupload.domain.factory.UploadBlockFactory
 import me.proton.core.drive.linkupload.domain.repository.LinkUploadRepository
+import me.proton.core.drive.share.data.extension.toLong
+import me.proton.core.drive.share.domain.entity.Share
 import me.proton.core.drive.share.domain.entity.ShareId
-import me.proton.core.drive.volume.domain.entity.VolumeId
 import me.proton.core.util.kotlin.serialize
 import javax.inject.Inject
 import kotlin.time.Duration
@@ -170,24 +171,46 @@ class LinkUploadRepositoryImpl @Inject constructor(
 
     override suspend fun getUploadFileLinksWithUriByPriority(
         userId: UserId,
-        volumeId: VolumeId,
+        isPhotoShare: Boolean,
         states: Set<UploadState>,
         count: Int,
-    ): Flow<List<UploadFileLink>> =
-        db.linkUploadDao.getAllWithUriByPriority(userId, volumeId.id, states, count)
-            .map { linkUploadEntities ->
-                linkUploadEntities.map { it.toUploadFileLink() }
-            }
+    ): Flow<List<UploadFileLink>> = if (isPhotoShare) {
+        db.linkUploadDao.getAllWithUriByPriorityWithShareType(
+            userId = userId,
+            states = states,
+            type = Share.Type.PHOTO.toLong(),
+            count = count,
+        )
+    } else {
+        db.linkUploadDao.getAllWithUriByPriorityWithoutShareType(
+            userId = userId,
+            states = states,
+            type = Share.Type.PHOTO.toLong(),
+            count = count,
+        )
+    }.map { linkUploadEntities -> linkUploadEntities.map { it.toUploadFileLink() } }
 
     override fun getUploadFileLinksCount(userId: UserId): Flow<UploadCount> =
         db.linkUploadDao.getUploadCount(userId, UploadFileLink.USER_PRIORITY).map { linkUploadCountEntity ->
             linkUploadCountEntity.toUploadCount()
         }
 
-    override fun getUploadFileLinksCount(userId: UserId, volumeId: VolumeId): Flow<UploadCount> =
-        db.linkUploadDao.getUploadCount(userId, volumeId.id, UploadFileLink.USER_PRIORITY).map { linkUploadCountEntity ->
-            linkUploadCountEntity.toUploadCount()
-        }
+    override fun getUploadFileLinksCount(
+        userId: UserId,
+        isPhotoShare: Boolean,
+    ): Flow<UploadCount> = if (isPhotoShare) {
+        db.linkUploadDao.getUploadCountWithShareType(
+            userId = userId,
+            type = Share.Type.PHOTO.toLong(),
+            userPriority = UploadFileLink.USER_PRIORITY
+        )
+    } else {
+        db.linkUploadDao.getUploadCountWithoutShareType(
+            userId = userId,
+            type = Share.Type.PHOTO.toLong(),
+            userPriority = UploadFileLink.USER_PRIORITY
+        )
+    }.map { it.toUploadCount() }
 
     override suspend fun getUploadFileLinksSize(
         userId: UserId, uploadStates: Set<UploadState>
@@ -434,3 +457,4 @@ class LinkUploadRepositoryImpl @Inject constructor(
                 .toTypedArray()
         )
 }
+

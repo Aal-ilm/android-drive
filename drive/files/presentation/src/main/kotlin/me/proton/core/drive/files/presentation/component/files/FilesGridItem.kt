@@ -54,6 +54,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -76,6 +77,7 @@ import me.proton.core.drive.drivelink.domain.extension.isNameEncrypted
 import me.proton.core.drive.files.presentation.component.FilesTestTag
 import me.proton.core.drive.linkdownload.domain.entity.DownloadState
 import me.proton.core.drive.thumbnail.presentation.extension.thumbnailPainter
+import me.proton.core.drive.i18n.R as I18N
 import me.proton.core.presentation.R as CorePresentation
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -261,7 +263,7 @@ private fun GridItemMoreButton(
                         .size(SmallIconSize)
                         .align(Alignment.Center),
                     painter = painterResource(id = CorePresentation.drawable.ic_proton_three_dots_vertical),
-                    contentDescription = null,
+                    contentDescription = stringResource(I18N.string.common_more),
                     tint = ProtonTheme.colors.interactionStrongNorm
                 )
             }

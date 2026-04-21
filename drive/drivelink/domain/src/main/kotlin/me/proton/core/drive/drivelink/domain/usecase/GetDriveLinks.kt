@@ -36,10 +36,9 @@ class GetDriveLinks @Inject constructor(
         driveLinkRepository
             .getDriveLinks(linkIds)
             .map { driveLinks ->
-                driveLinks.map { driveLink ->
-                    driveLink
-                        .let { link -> updateSharePermissions(link) }
-                        .let { link -> updateShareUserDisplayName(link) }
-                }
+                @Suppress("ComplexRedundantLet")
+                driveLinks
+                    .let { links -> updateSharePermissions(links) }
+                    .let { links -> updateShareUserDisplayName(links) }
             }
 }

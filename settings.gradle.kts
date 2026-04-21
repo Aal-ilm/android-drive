@@ -77,7 +77,7 @@ pluginManagement {
 
 plugins {
     id("me.proton.core.gradle-plugins.include-core-build") version "1.3.0"
-    id("com.gradle.enterprise") version "3.12.6"
+    id("com.gradle.enterprise") version "3.13.1"
 }
 
 gradleEnterprise {

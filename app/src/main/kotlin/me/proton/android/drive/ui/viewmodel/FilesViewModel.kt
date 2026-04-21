@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import me.proton.android.drive.document.scanner.domain.usecase.IsScannerAvailable
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.common.onClick
 import me.proton.android.drive.ui.effect.HomeEffect
 import me.proton.android.drive.ui.effect.HomeTabViewModel
@@ -60,7 +61,7 @@ import me.proton.android.drive.usecase.OpenProtonDocumentInBrowser
 import me.proton.core.domain.arch.onSuccess
 import me.proton.core.drive.base.data.datastore.GetUserDataStore
 import me.proton.core.drive.base.data.extension.getDefaultMessage
-import me.proton.core.drive.base.data.extension.log
+import me.proton.core.drive.base.data.extension.log as logResult
 import me.proton.core.drive.base.domain.entity.Percentage
 import me.proton.core.drive.base.domain.entity.Permissions
 import me.proton.core.drive.base.domain.entity.TimestampMs
@@ -104,7 +105,6 @@ import me.proton.core.drive.observability.domain.metrics.common.mobile.performan
 import me.proton.core.drive.share.domain.entity.ShareId
 import me.proton.core.drive.sorting.domain.entity.Sorting
 import me.proton.core.drive.sorting.domain.usecase.GetSorting
-import me.proton.core.drive.upload.data.extension.logTag
 import me.proton.core.drive.upload.domain.usecase.CancelUploadFile
 import me.proton.core.drive.upload.domain.usecase.GetUploadProgress
 import me.proton.core.drive.user.domain.extension.isFree
@@ -179,7 +179,7 @@ class FilesViewModel @Inject constructor(
                         }
                         .onFailure { error ->
                             onFilesDriveLinkError(userId, previous, error, listContentState)
-                            error.log(VIEW_MODEL, "Cannot get drive link for ${folderId?.id}")
+                            error.logResult(VIEW_MODEL, "Cannot get drive link for ${folderId?.id}")
                             toFirstItemMetricsNotifier.reset()
                         }
                     return@mapWithPrevious null
@@ -244,6 +244,11 @@ class FilesViewModel @Inject constructor(
             CorePresentation.drawable.ic_proton_hamburger
         } else {
             CorePresentation.drawable.ic_arrow_back
+        },
+        navigationContentDescription = if (isRootFolder && selected.value.isEmpty()) {
+            appContext.getString(I18N.string.common_open_side_menu_action)
+        } else {
+            appContext.getString(I18N.string.common_back_action)
         },
         drawerGesturesEnabled = isRootFolder,
         listContentState = listContentState.value,
@@ -310,6 +315,13 @@ class FilesViewModel @Inject constructor(
                 CorePresentation.drawable.ic_proton_cross
             } else {
                 CorePresentation.drawable.ic_arrow_back
+            },
+            navigationContentDescription = if (showHamburgerMenuIcon) {
+                appContext.getString(I18N.string.common_open_side_menu_action)
+            } else if (selected.isNotEmpty()) {
+                appContext.getString(I18N.string.common_close_action)
+            } else {
+                appContext.getString(I18N.string.common_back_action)
             },
             sorting = sorting,
             listContentState = listContentState,
@@ -510,7 +522,7 @@ class FilesViewModel @Inject constructor(
     private fun onCancelUpload(uploadFileLink: UploadFileLink) {
         viewModelScope.launch {
             cancelUploadFile(uploadFileLink).onFailure { error ->
-                error.log(uploadFileLink.logTag(), "Cannot cancel upload")
+                error.log(VIEW_MODEL, "Cannot cancel upload")
                 _homeEffect.emit(
                     HomeEffect.ShowSnackbar(
                         error.getDefaultMessage(

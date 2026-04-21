@@ -98,7 +98,7 @@ fun PhotosScreen(
             lifecycle = lifecycle,
         )
     }
-    val photos = rememberFlowWithLifecycle(flow = viewModel.driveLinks)
+    val photos = rememberFlowWithLifecycle(flow = viewModel.photoItems)
     val listEffect = rememberFlowWithLifecycle(flow = viewModel.listEffect)
 
     LaunchedEffect(viewModel, LocalContext.current) {
@@ -203,6 +203,7 @@ fun TopAppBar(
         navigationIcon = if (viewState.navigationIconResId != 0) {
             painterResource(id = viewState.navigationIconResId)
         } else null,
+        navigationContentDescription = viewState.navigationContentDescription,
         notificationDotVisible = viewState.notificationDotVisible,
         onNavigationIcon = viewEvent.onTopAppBarNavigation,
         title = viewState.title,

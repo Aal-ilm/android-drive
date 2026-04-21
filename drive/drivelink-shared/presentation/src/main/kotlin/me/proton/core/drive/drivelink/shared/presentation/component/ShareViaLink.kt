@@ -91,6 +91,7 @@ fun ShareViaLink(
         val focusManager = LocalFocusManager.current
         TopAppBar(
             navigationIcon = painterResource(id = CorePresentation.drawable.ic_arrow_back),
+            navigationContentDescription = stringResource(I18N.string.common_back_action),
             onNavigationIcon = viewEvent.onBackPressed,
             title = stringResource(id = I18N.string.title_share_via_link),
             modifier = Modifier.statusBarsPadding(),

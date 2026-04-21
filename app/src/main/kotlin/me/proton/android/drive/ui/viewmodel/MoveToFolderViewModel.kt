@@ -36,13 +36,15 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
+import me.proton.android.drive.ui.handler.FolderCreatedHandler
+import me.proton.android.drive.ui.handler.FolderCreatedHandlerDelegate
 import me.proton.android.drive.ui.navigation.Screen
 import me.proton.android.drive.ui.viewevent.MoveToFolderViewEvent
 import me.proton.android.drive.ui.viewstate.MoveFileViewState
 import me.proton.core.domain.arch.mapSuccessValueOrNull
-import me.proton.android.drive.ui.handler.FolderCreatedHandler
-import me.proton.android.drive.ui.handler.FolderCreatedHandlerDelegate
 import me.proton.core.drive.base.domain.log.LogTag
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.presentation.common.Action
 import me.proton.core.drive.drivelink.crypto.domain.usecase.DecryptDriveLinks
@@ -163,6 +165,11 @@ class MoveToFolderViewModel @Inject constructor(
             } else {
                 CorePresentation.drawable.ic_arrow_back
             },
+            navigationContentDescription = if (parentLink == null || isRoot) {
+                appContext.getString(I18N.string.common_close_action)
+            } else {
+                appContext.getString(I18N.string.common_back_action)
+            },
             driveLinks = decryptDriveLinks(driveLinksToMove)
                 .map { driveLink -> if (driveLink.isNameEncrypted) "" else driveLink.name },
         )
@@ -203,8 +210,19 @@ class MoveToFolderViewModel @Inject constructor(
         } else if (folder.id == parentId) {
             CoreLogger.w(LogTag.MOVE, "folder same as parent, move aborted")
         } else {
-            moveFile(userId, driveLinksToMove.value.map { driveLink -> driveLink.id }, folder.id)
-            selectionId?.let { deselectLinks(selectionId) }
+            val linkIds = driveLinksToMove.value.map { driveLink -> driveLink.id }
+            moveFile(
+                userId = userId,
+                linkIds = linkIds,
+                parentId = folder.id,
+            ).onFailure { error ->
+                error.log(VIEW_MODEL, "Failed to move files for ${linkIds.map { it.id }}")
+            }
+            selectionId?.let {
+                deselectLinks(selectionId).onFailure { error ->
+                    error.log(VIEW_MODEL, "Failed to deselect links")
+                }
+            }
             navigateBack()
         }
     }

@@ -23,7 +23,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.navigation.Screen
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.presentation.extension.require
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
 import me.proton.core.drive.sorting.domain.entity.Sorting
@@ -43,7 +45,9 @@ class SortingDialogViewModel @Inject constructor(
 
     suspend fun setSorting(sorting: Sorting) {
         viewModelScope.launch {
-            updateSorting(userId, sorting)
+            updateSorting(userId, sorting).onFailure { error ->
+                error.log(VIEW_MODEL, "Failed update sorting")
+            }
         }.join()
     }
 }

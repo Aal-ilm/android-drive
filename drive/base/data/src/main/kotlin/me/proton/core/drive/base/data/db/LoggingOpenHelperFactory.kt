@@ -64,6 +64,11 @@ class LoggingOpenHelperFactory<T : RoomDatabase>(
     }
 }
 
+private class SlowQueryException(
+    message: String? = null,
+    cause: Throwable? = null,
+) : Throwable(message, cause)
+
 private class LoggingDatabase<T : RoomDatabase>(
     private val activityManager: ActivityManager,
     private val delegate: SupportSQLiteDatabase,
@@ -71,10 +76,6 @@ private class LoggingDatabase<T : RoomDatabase>(
     private val captureStackForSlow: Duration,
     private val clazz: Class<T>,
 ) : SupportSQLiteDatabase by delegate {
-    private class SlowQueryException(
-        message: String? = null,
-        cause: Throwable? = null,
-    ) : Throwable(message, cause)
 
     private val Duration.shouldLog: Boolean get() = this > slowThreshold
     private val Duration.throwable: Throwable? get() = takeIf {
@@ -169,7 +170,7 @@ private class LoggingStatement<T : RoomDatabase>(
     private val Duration.throwable: Throwable? get() = takeIf {
         this > captureStackForSlow && captureStackForSlow > Duration.ZERO
     }?.let {
-        RuntimeException("Slow DB query detected (${activityManager.logMemoryInfo}).").apply {
+        SlowQueryException("Slow DB query detected (${activityManager.logMemoryInfo}).").apply {
             stackTrace = Thread.currentThread().stackTrace
         }
     }

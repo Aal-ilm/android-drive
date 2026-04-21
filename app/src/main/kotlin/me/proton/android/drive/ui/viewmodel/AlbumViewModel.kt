@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import me.proton.android.drive.extension.getDefaultMessage
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.extension.thumbnailVO
 import me.proton.android.drive.photos.domain.usecase.AddPhotosToStream
 import me.proton.android.drive.photos.domain.usecase.AddToAlbumInfo
@@ -63,13 +64,12 @@ import me.proton.android.drive.ui.common.onClick
 import me.proton.android.drive.usecase.OnFilesDriveLinkError
 import me.proton.core.domain.arch.mapSuccessValueOrNull
 import me.proton.core.domain.arch.onSuccess
-import me.proton.core.drive.base.data.extension.log
+import me.proton.core.drive.base.data.extension.log as logResult
 import me.proton.core.drive.base.domain.entity.Permissions
 import me.proton.core.drive.base.domain.extension.filterSuccessOrError
 import me.proton.core.drive.base.domain.extension.isViewerOrEditorOnly
 import me.proton.core.drive.base.domain.extension.mapWithPrevious
 import me.proton.core.drive.base.domain.extension.onFailure
-import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.log.logId
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
@@ -203,7 +203,7 @@ class AlbumViewModel @Inject constructor(
                                 contentState = listContentState,
                                 shareType = Share.Type.PHOTO,
                             )
-                            error.log(VIEW_MODEL)
+                            error.logResult(VIEW_MODEL)
                         }
                     return@mapWithPrevious null
                 }
@@ -259,6 +259,11 @@ class AlbumViewModel @Inject constructor(
                 CorePresentation.drawable.ic_arrow_back
             } else {
                 CorePresentation.drawable.ic_proton_close
+            },
+            navigationContentDescription = if (selected.isEmpty() || inPickerMode) {
+                appContext.getString(I18N.string.common_back_action)
+            } else {
+                appContext.getString(I18N.string.common_close_action)
             },
             title = takeIf { selected.isNotEmpty() && !inPickerMode }
                 ?.let {
@@ -412,7 +417,7 @@ class AlbumViewModel @Inject constructor(
         viewModelScope.launch {
             saveAllLoading.value = true
             addPhotosToStream(albumId).onFailure { error ->
-                error.log(LogTag.ALBUM, "Cannot copy photo to stream: ${albumId.id}")
+                error.log(VIEW_MODEL, "Cannot copy photo to stream: ${albumId.id}")
                 broadcastMessages(
                     userId = userId,
                     message = error.getDefaultMessage(

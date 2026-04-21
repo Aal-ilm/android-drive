@@ -33,6 +33,7 @@ data class AlbumsViewState(
     val listContentState: ListContentState,
     val isRefreshEnabled: Boolean,
     @DrawableRes val navigationIconResId: Int,
+    val navigationContentDescription: String?,
     val filters: List<AlbumsFilter> = emptyList(),
     @DrawableRes val placeholderImageResId: Int,
 )

@@ -155,7 +155,7 @@ abstract class MultiplePhotosOptionsViewModel(
                     .let { photoListings ->
                         addToAlbumInfo(albumId, photoListings.toSet())
                             .onFailure { error ->
-                                error.log(VIEW_MODEL, "Failed to add photos to album info")
+                                error.log(VIEW_MODEL, "Failed to add photos to album info for ${albumId.id}")
                                 error.broadcast()
                             }
                             .onSuccess {
@@ -163,7 +163,7 @@ abstract class MultiplePhotosOptionsViewModel(
                                 showAddToAlbumStartMessage()
                                 addPhotosToAlbum(albumId)
                                     .onFailure { error ->
-                                        error.log(VIEW_MODEL, "Failed to add photos to album")
+                                        error.log(VIEW_MODEL, "Failed to add photos to album for ${albumId.id}")
                                         error.broadcast()
                                     }
                                     .onSuccess { result ->

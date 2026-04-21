@@ -46,17 +46,16 @@ class GetSelectedDriveLinks @Inject constructor(
                         deselectLinks(
                             selectionId,
                             (driveLinks - children.toSet()).map { driveLink -> driveLink.id },
-                        )
+                        ).getOrThrow()
                     }
             }
 
     private fun getSelectedDriveLinks(selectionId: SelectionId): Flow<List<DriveLink>> =
         repository.getSelectedDriveLinks(selectionId)
             .map { driveLinks ->
-                driveLinks.map { driveLink ->
-                    driveLink
-                        .let { link -> updateSharePermissions(link) }
-                        .let { link -> updateShareUserDisplayName(link) }
-                }
+                @Suppress("ComplexRedundantLet")
+                driveLinks
+                    .let { links -> updateSharePermissions(links) }
+                    .let { links -> updateShareUserDisplayName(links) }
             }
 }

@@ -143,6 +143,15 @@
   <string name="notification_content_text_backup_paused_background_restrictions">备份任务无法在后台运行</string>
   <string name="notification_content_text_backup_preparing">准备备份</string>
   <string name="notification_content_text_backup_failed_migration">迁移进行中，请更新您的应用程序</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="other">正在下载 %1$d 个文件</item>
+  </plurals>
   <string name="notification_content_title_download_complete">下载完成</string>
   <string name="notification_content_title_forced_sign_out">请登录</string>
   <string name="notification_content_text_forced_sign_out">很抱歉打扰您！我们的同步出现了问题 - 请重新登录，一切将顺利运行。</string>

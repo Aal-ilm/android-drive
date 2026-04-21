@@ -184,6 +184,7 @@ fun Preview(
                     }
                     .testTag(PreviewComponentTestTag.screen),
                 navigationIcon = painterResource(id = viewState.navigationIconResId),
+                navigationContentDescription = viewState.navigationContentDescription,
                 onNavigationIcon = { viewEvent.onTopAppBarNavigation() },
                 title = item?.title ?: "",
                 isTitleEncrypted = item?.isTitleEncrypted ?: false,
@@ -619,6 +620,7 @@ fun PreviewPreviewLoadingState() {
             Preview(
                 viewState = PreviewViewState(
                     navigationIconResId = CorePresentation.drawable.ic_proton_arrow_back,
+                    navigationContentDescription = null,
                     isFullscreen = flowOf(true),
                     currentIndex = 0,
                     previewContentState = PreviewContentState.Content,

@@ -23,6 +23,7 @@ plugins {
 dependencies {
     implementation(libs.gradle.plugin.android)
     implementation(libs.gradle.plugin.kotlin)
+    implementation(libs.gradle.plugin.ksp)
     implementation("com.squareup:javapoet:1.13.0") // https://github.com/google/dagger/issues/3068#issuecomment-999118496
 }
 

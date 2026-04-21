@@ -33,14 +33,14 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.core.domain.arch.DataResult
 import me.proton.core.domain.arch.onSuccess
 import me.proton.core.drive.base.data.extension.getDefaultMessage
-import me.proton.core.drive.base.data.extension.log
+import me.proton.core.drive.base.data.extension.log as logResult
 import me.proton.core.drive.base.data.extension.logDefaultMessage
 import me.proton.core.drive.base.domain.extension.filterSuccessOrError
 import me.proton.core.drive.base.domain.extension.onFailure
-import me.proton.core.drive.base.domain.log.LogTag.SHARING
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
@@ -94,7 +94,7 @@ class UserInvitationViewModel @Inject constructor(
             when (result) {
                 is DataResult.Processing -> listContentState.value = ListContentState.Loading
                 is DataResult.Error -> {
-                    result.log(VIEW_MODEL)
+                    result.logResult(VIEW_MODEL)
                     listContentState.value = ListContentState.Error(result.logDefaultMessage(
                         context = appContext,
                         useExceptionMessage = configurationProvider.useExceptionMessage,
@@ -124,6 +124,7 @@ class UserInvitationViewModel @Inject constructor(
             }
         ).format(0),
         navigationIconResId = CorePresentation.drawable.ic_proton_arrow_back,
+        navigationContentDescription = appContext.getString(I18N.string.common_back_action),
         listContentState = listContentState.value,
     )
 
@@ -155,7 +156,7 @@ class UserInvitationViewModel @Inject constructor(
             acceptUserInvitation(invitationId).filterSuccessOrError()
                 .last()
                 .onFailure { error ->
-                    error.log(SHARING, "Cannot accept invitation: $invitationId")
+                    error.logResult(VIEW_MODEL, "Cannot accept invitation: $invitationId")
                     broadcastMessages(
                         userId,
                         error.getDefaultMessage(
@@ -185,7 +186,7 @@ class UserInvitationViewModel @Inject constructor(
                 .filterSuccessOrError()
                 .last()
                 .onFailure { error ->
-                    error.log(SHARING, "Cannot delete invitation: $invitationId")
+                    error.logResult(VIEW_MODEL, "Cannot delete invitation: $invitationId")
                     broadcastMessages(
                         userId,
                         error.getDefaultMessage(

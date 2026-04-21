@@ -27,6 +27,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.navigation.Screen
 import me.proton.android.drive.ui.viewevent.ConfirmStopSyncFolderViewEvent
 import me.proton.android.drive.ui.viewstate.ConfirmStopSyncFolderViewState
@@ -34,8 +35,7 @@ import me.proton.core.drive.backup.domain.entity.BackupFolder
 import me.proton.core.drive.backup.domain.usecase.DisableBackupForFolder
 import me.proton.core.drive.backup.domain.usecase.GetAllBuckets
 import me.proton.core.drive.base.data.extension.getDefaultMessage
-import me.proton.core.drive.base.data.extension.log
-import me.proton.core.drive.base.domain.log.LogTag.BACKUP
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.extension.require
@@ -79,7 +79,7 @@ class ConfirmStopSyncFolderDialogViewModel @Inject constructor(
             disableBackupForFolder(BackupFolder(id, folderId)).onSuccess {
                 onSuccess()
             }.onFailure { error ->
-                error.log(BACKUP, "Cannot stop sync for folder: $id")
+                error.log(VIEW_MODEL, "Cannot stop sync for folder: $id")
                 broadcastMessages(
                     userId = userId,
                     message = error.getDefaultMessage(

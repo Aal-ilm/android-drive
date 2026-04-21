@@ -158,6 +158,18 @@
   <string name="notification_content_text_backup_paused_background_restrictions">Zálohovanie nemôže prebiehať na pozadí</string>
   <string name="notification_content_text_backup_preparing">Príprava na zálohovanie</string>
   <string name="notification_content_text_backup_failed_migration">Prebieha migrácia, aktualizujte svoju aplikáciu</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">Sťahovanie %1$d súboru</item>
+    <item quantity="few">Sťahovanie %1$d súborov</item>
+    <item quantity="many">Sťahovanie %1$d súborov</item>
+    <item quantity="other">Sťahovanie %1$d súborov</item>
+  </plurals>
   <string name="notification_content_title_download_complete">Sťahovanie dokončené</string>
   <string name="notification_content_title_forced_sign_out">Prihláste sa, prosím</string>
   <string name="notification_content_text_forced_sign_out">Ospravedlňujeme sa za vyrušenie! Nastal problém so synchronizáciou - prosím prihláste sa znova a všetko bude fungovať bez problémov.</string>

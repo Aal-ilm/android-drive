@@ -19,6 +19,7 @@
 package me.proton.core.drive.sorting.domain.usecase
 
 import me.proton.core.domain.entity.UserId
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.sorting.domain.entity.Sorting
 import me.proton.core.drive.sorting.domain.repository.SortingRepository
 import javax.inject.Inject
@@ -26,6 +27,7 @@ import javax.inject.Inject
 class UpdateSorting @Inject constructor(
     private val repository: SortingRepository,
 ) {
-    suspend operator fun invoke(userId: UserId, sorting: Sorting) =
+    suspend operator fun invoke(userId: UserId, sorting: Sorting) = coRunCatching {
         repository.updateSorting(userId, sorting)
+    }
 }

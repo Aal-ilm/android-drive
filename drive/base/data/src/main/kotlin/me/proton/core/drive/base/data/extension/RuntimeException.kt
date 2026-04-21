@@ -19,6 +19,7 @@ package me.proton.core.drive.base.data.extension
 
 import android.content.Context
 import me.proton.core.drive.base.data.entity.LoggerLevel
+import me.proton.core.network.domain.ApiException
 import me.proton.core.drive.i18n.R as I18N
 
 fun RuntimeException.getDefaultMessage(context: Context): String =
@@ -29,5 +30,10 @@ fun RuntimeException.log(
     message: String? = null,
     level: LoggerLevel? = LoggerLevel.ERROR,
 ): RuntimeException = also {
-    level.log(tag, this, message)
+    val runtimeCause = cause
+    if (level == LoggerLevel.ERROR && runtimeCause is ApiException) {
+        runtimeCause.loggerLevel()
+    } else {
+        level
+    }.log(tag, this, message)
 }

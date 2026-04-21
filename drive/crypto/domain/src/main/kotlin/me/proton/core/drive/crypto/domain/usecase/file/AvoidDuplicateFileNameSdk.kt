@@ -21,6 +21,7 @@ package me.proton.core.drive.crypto.domain.usecase.file
 import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.base.domain.provider.ProtonDriveClientProvider
 import me.proton.core.drive.base.domain.util.coRunCatching
+import me.proton.drive.sdk.entity.NodeUid
 import javax.inject.Inject
 
 class AvoidDuplicateFileNameSdk @Inject constructor(
@@ -28,7 +29,7 @@ class AvoidDuplicateFileNameSdk @Inject constructor(
 ) {
     suspend operator fun invoke(
         userId: UserId,
-        parentFolderUid: String,
+        parentFolderUid: NodeUid,
         name: String,
     ): Result<String> = coRunCatching {
 

@@ -30,6 +30,8 @@ import me.proton.core.drive.base.domain.extension.bytes
 import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.extension.toPercentage
 import me.proton.core.drive.base.domain.extension.toResult
+import me.proton.core.drive.base.domain.formatter.DateTimeFormatter
+import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.drive.base.domain.log.LogTag.DOWNLOAD
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.GetDownloadStagingTempFolder
@@ -40,7 +42,10 @@ import me.proton.core.drive.drivelink.domain.extension.decryptedFileName
 import me.proton.core.drive.drivelink.domain.usecase.GetDriveLink
 import me.proton.core.drive.drivelink.domain.usecase.GetVolumeType
 import me.proton.core.drive.drivelink.download.domain.manager.DownloadSdkManager
+import me.proton.core.drive.file.base.domain.extension.captureTime
 import me.proton.core.drive.link.domain.entity.FileId
+import me.proton.core.drive.link.domain.extension.nodeUid
+import me.proton.core.drive.link.domain.extension.revisionUid
 import me.proton.core.drive.link.domain.extension.userId
 import me.proton.core.drive.linkdownload.domain.entity.DownloadState
 import me.proton.core.drive.linkdownload.domain.usecase.RemoveSignatureVerificationFailed
@@ -54,8 +59,6 @@ import me.proton.drive.sdk.DownloadController
 import me.proton.drive.sdk.ProtonDriveSdkException
 import me.proton.drive.sdk.ProtonSdkError
 import me.proton.drive.sdk.ProtonSdkError.ErrorDomain
-import me.proton.drive.sdk.Uid
-import me.proton.drive.sdk.downloader
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -75,6 +78,7 @@ class DownloadFileSdk @Inject constructor(
     private val integrityMetricsNotifier: IntegrityMetricsNotifier,
     private val configurationProvider: ConfigurationProvider,
     private val reportError: ReportError,
+    private val dateTimeFormatter: DateTimeFormatter,
 ) {
 
     suspend operator fun invoke(
@@ -86,14 +90,12 @@ class DownloadFileSdk @Inject constructor(
         var file: File?
         var tmpFile: File?
         return coRunCatching {
-            setDownloadState(fileId, DownloadState.Downloading)
             file = moveFileIfExists(fileId).getOrThrow()
             val driveLink = getDriveLink(fileId).toResult().getOrThrow()
             val volumeType = getVolumeType(driveLink).getOrThrow()
             getThumbnailPermanentFile(volumeId, driveLink.link, revisionId).getOrThrow()
             if (file.exists()) {
                 CoreLogger.d(DOWNLOAD, "File already downloaded")
-                setDownloadState(driveLink.link, DownloadState.Ready)
                 return@coRunCatching
             }
 
@@ -113,10 +115,7 @@ class DownloadFileSdk @Inject constructor(
                             revisionId = revisionId,
                         ) { client ->
                             client.downloader(
-                                photoUid = Uid.makeNodeUid(
-                                    volumeId = driveLink.volumeId.id,
-                                    nodeId = fileId.id,
-                                ),
+                                photoUid = fileId.nodeUid(driveLink.volumeId),
                                 timeout = configurationProvider.sdkQueueTimeout,
                             )
                         }
@@ -129,9 +128,8 @@ class DownloadFileSdk @Inject constructor(
                             revisionId = revisionId,
                         ) { client ->
                             client.downloader(
-                                revisionUid = Uid.makeNodeRevisionUid(
-                                    volumeId = volumeId.id,
-                                    nodeId = fileId.id,
+                                revisionUid = fileId.revisionUid(
+                                    volumeId = volumeId,
                                     revisionId = revisionId,
                                 ),
                                 timeout = configurationProvider.sdkQueueTimeout,
@@ -190,45 +188,58 @@ class DownloadFileSdk @Inject constructor(
                 StandardCopyOption.REPLACE_EXISTING
             )
             if (verifyDownloadedFile.isAllowed(userId = driveLink.userId)) {
+                val checksumVerified = driveLink.link.activeRevisionChecksumVerified
                 verifyDownloadedFile(
                     driveLink = driveLink,
-                    revisionId = revisionId,
                     file = file,
                 )
                     .onSuccess {
                         integrityMetricsNotifier.downloadVerifier(
                             fileSize = file.length().bytes,
                             isSuccess = true,
+                            checksumVerified = checksumVerified,
                         )
                     }
                     .recoverCatching { error ->
                         if (error is ContentDigestVerifierException.Mismatch) {
                             val fileSize = file.length().bytes
-                            file.delete()
                             integrityMetricsNotifier.downloadVerifier(
                                 fileSize = fileSize,
                                 isSuccess = false,
+                                checksumVerified = checksumVerified,
                                 throwable = error,
                             )
-                            throw error
+                            if (checksumVerified) {
+                                file.delete()
+                                throw error
+                            } else {
+                                reportError(
+                                    tag = LogTag.DOWNLOAD,
+                                    error = error,
+                                    message = buildString {
+                                        append("ContentDigestVerifierException.Mismatch ChecksumVerified=false, ")
+                                        append("revisionId=${revisionId}, ")
+                                        append("creationTime=${driveLink.link.creationTime.captureTime(dateTimeFormatter)}")
+                                    },
+                                )
+                            }
                         } else {
                             integrityMetricsNotifier.downloadVerifier(
                                 fileSize = file.length().bytes,
                                 isSuccess = true,
+                                checksumVerified = checksumVerified,
                                 throwable = error,
                             )
                         }
                     }
                     .getOrThrow()
             }
-            setDownloadState(fileId, DownloadState.Ready)
         }.onFailure { error ->
             reportError(
                 tag = DOWNLOAD,
                 error = error,
                 message = "Cannot download ${fileId.id} (sdk)",
             )
-            setDownloadState(fileId, DownloadState.Error)
         }
     }
 

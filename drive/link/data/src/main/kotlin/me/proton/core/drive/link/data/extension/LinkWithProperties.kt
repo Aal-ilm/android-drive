@@ -80,6 +80,7 @@ fun LinkWithProperties.toLink(): Link {
             relatedPhotoIds = relatedPhotoIds.map { relatedPhotoId ->
                 FileId(shareId, relatedPhotoId)
             },
+            activeRevisionChecksumVerified = properties.activeRevisionChecksumVerified,
         )
 
         is LinkFolderPropertiesEntity -> Link.Folder(

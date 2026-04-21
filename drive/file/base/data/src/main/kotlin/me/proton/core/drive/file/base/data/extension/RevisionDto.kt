@@ -29,7 +29,8 @@ fun RevisionDto.toRevisionInfo() =
         blocks = blocks.map { blockDto -> blockDto.toBlock() },
         manifestSignature = manifestSignature,
         signatureAddress = signatureAddress,
-        state = state.toRevisionState()
+        state = state.toRevisionState(),
+        checksumVerified = checksumVerified,
     )
 
 private fun Long.toRevisionState(): RevisionState? {

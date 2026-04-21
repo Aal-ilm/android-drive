@@ -22,6 +22,7 @@ import me.proton.core.drive.base.domain.entity.Bytes
 import me.proton.core.drive.drivelink.crypto.domain.usecase.IntegrityMetricsNotifier
 import me.proton.core.drive.observability.data.extension.toStringBuckets
 import me.proton.core.drive.observability.domain.metrics.DownloadVerifierAttemptsTotal
+import me.proton.core.drive.observability.domain.metrics.common.BooleanStatus
 import me.proton.core.drive.observability.domain.usecase.EnqueueObservabilityEvent
 import javax.inject.Inject
 
@@ -32,6 +33,7 @@ class IntegrityMetricsNotifierImpl @Inject constructor(
     override suspend fun downloadVerifier(
         fileSize: Bytes,
         isSuccess: Boolean,
+        checksumVerified: Boolean,
         throwable: Throwable?
     ) {
         enqueueObservabilityEvent(
@@ -43,6 +45,7 @@ class IntegrityMetricsNotifierImpl @Inject constructor(
                         else -> DownloadVerifierAttemptsTotal.ResultStatusWithSkipped.failure
                     },
                     fileSize = fileSize.toStringBuckets(),
+                    checksumVerified = if (checksumVerified) BooleanStatus.`true` else BooleanStatus.`false`,
                 )
             )
         )

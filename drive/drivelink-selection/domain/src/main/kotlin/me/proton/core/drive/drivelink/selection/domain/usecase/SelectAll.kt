@@ -46,7 +46,7 @@ class SelectAll @Inject constructor(
         },
         selectLinks = { id, linkIds ->
             id?.let {
-                selectLinks(id, linkIds)
+                selectLinks(id, linkIds).getOrThrow()
                 Result.success(id)
             } ?: selectLinks(linkIds)
         },

@@ -29,6 +29,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.presentation.app.AppLifecycleProvider
@@ -51,7 +52,9 @@ class WebViewInitializer : Initializer<Unit> {
                             CoreLogger.d(LogTag.WEBVIEW, "Start safe browsing: $isSuccess")
                         }
                     }
-                }.getOrNull(LogTag.WEBVIEW, "startSafeBrowsing failed")
+                }.onFailure { error ->
+                    error.log(LogTag.WEBVIEW, "startSafeBrowsing failed")
+                }
             }
         }
     }

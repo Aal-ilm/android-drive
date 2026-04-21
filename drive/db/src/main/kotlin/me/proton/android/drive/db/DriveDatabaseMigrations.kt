@@ -662,4 +662,16 @@ object DriveDatabaseMigrations {
             DocumentScannerDatabase.MIGRATION_0.migrate(db)
         }
     }
+
+    val MIGRATION_102_103 = object : Migration(102, 103) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            LinkDatabase.MIGRATION_4.migrate(db)
+        }
+    }
+
+    val MIGRATION_103_104 = object : Migration(103, 104) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            DriveLinkPhotoDatabase.MIGRATION_4.migrate(db)
+        }
+    }
 }

@@ -25,6 +25,7 @@ data class Revision(
     val manifestSignature: String?,
     val signatureAddress: String?,
     val state: RevisionState? = null,
+    val checksumVerified: Boolean = false,
 ) {
     val fileSize: Long = revisionSize - thumbnailSize
 }

@@ -20,6 +20,7 @@ package me.proton.core.drive.file.base.data.api.entity
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import me.proton.core.drive.base.data.api.Dto.BLOCKS
+import me.proton.core.drive.base.data.api.Dto.CHECKSUM_VERIFIED
 import me.proton.core.drive.base.data.api.Dto.CREATE_TIME
 import me.proton.core.drive.base.data.api.Dto.ID
 import me.proton.core.drive.base.data.api.Dto.MANIFEST_SIGNATURE
@@ -53,6 +54,8 @@ data class RevisionDto(
     val thumbnailHash: String?,
     @SerialName(THUMBNAIL_SIZE)
     val thumbnailSize: Long,
+    @SerialName(CHECKSUM_VERIFIED)
+    val checksumVerified: Boolean,
     @SerialName(BLOCKS)
     val blocks: List<BlockDto>
 )

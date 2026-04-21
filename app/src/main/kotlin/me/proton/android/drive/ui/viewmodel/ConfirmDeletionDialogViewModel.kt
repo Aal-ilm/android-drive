@@ -27,11 +27,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.navigation.Screen
 import me.proton.android.drive.ui.viewevent.ConfirmDeletionViewEvent
 import me.proton.android.drive.ui.viewstate.ConfirmDeletionViewState
 import me.proton.core.domain.arch.mapSuccessValueOrNull
 import me.proton.core.drive.base.domain.extension.filterSuccessOrError
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.presentation.extension.require
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
 import me.proton.core.drive.drivelink.crypto.domain.usecase.GetDecryptedDriveLink
@@ -66,7 +68,9 @@ class ConfirmDeletionDialogViewModel @Inject constructor(
     fun viewEvent(onDismiss: () -> Unit) = object : ConfirmDeletionViewEvent {
         override val onConfirm = {
             viewModelScope.launch {
-                deleteFromTrash(userId, linkId)
+                deleteFromTrash(userId, linkId).onFailure{ error ->
+                    error.log(VIEW_MODEL, "Failed to delete from trash ${linkId.id}")
+                }
                 onDismiss()
             }
             Unit

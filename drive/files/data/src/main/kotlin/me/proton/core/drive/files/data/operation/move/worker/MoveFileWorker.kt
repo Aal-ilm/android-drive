@@ -40,7 +40,7 @@ import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.data.workmanager.addTags
 import me.proton.core.drive.base.domain.api.ProtonApiCode
 import me.proton.core.drive.base.domain.extension.onProtonHttpException
-import me.proton.core.drive.base.domain.extension.resultValueOrNull
+import me.proton.core.drive.base.domain.extension.toResult
 import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.drivelink.domain.entity.DriveLink
@@ -81,14 +81,18 @@ class MoveFileWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = supervisorScope {
         val driveLinks = getSelectedDriveLinks(selectionId).first()
-        val parentId = getLink(moveToParentId).resultValueOrNull()?.id
+        val parentId = getLink(moveToParentId).toResult().onFailure { error ->
+            error.log(LogTag.MOVE, "Cannot get link to move file: $moveToParentId")
+        }.getOrNull()?.id
         if (driveLinks.isEmpty() || parentId == null || parentId !is ParentId) {
             broadcastMessages(
                 userId = userId,
                 message = applicationContext.getString(I18N.string.file_operation_error_occurred_moving_file),
                 type = BroadcastMessage.Type.ERROR
             )
-            deselectLinks(selectionId)
+            deselectLinks(selectionId).onFailure { error ->
+                error.log(LogTag.MOVE, "Failed to deselect links")
+            }
             return@supervisorScope Result.failure()
         }
         val succeeded: MutableList<DriveLink> = Collections.synchronizedList(arrayListOf())
@@ -135,7 +139,9 @@ class MoveFileWorker @AssistedInject constructor(
             CoreLogger.d(LogTag.MOVE, e, e.message.orEmpty())
             cancel()
         }
-        deselectLinks(selectionId)
+        deselectLinks(selectionId).onFailure { error ->
+            error.log(LogTag.MOVE, "Failed to deselect links")
+        }
         return@supervisorScope Result.success()
     }
 

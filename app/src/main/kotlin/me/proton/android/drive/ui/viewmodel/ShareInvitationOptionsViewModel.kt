@@ -32,9 +32,9 @@ import me.proton.core.compose.component.bottomsheet.RunAction
 import me.proton.core.domain.arch.DataResult
 import me.proton.core.domain.arch.mapSuccessValueOrNull
 import me.proton.core.drive.base.data.extension.getDefaultMessage
-import me.proton.core.drive.base.data.extension.log
+import me.proton.core.drive.base.data.extension.log as logResult
 import me.proton.core.drive.base.domain.entity.Permissions
-import me.proton.core.drive.base.domain.log.LogTag.SHARING
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.extension.require
@@ -130,7 +130,7 @@ abstract class ShareInvitationOptionsViewModel(
         error: DataResult.Error,
         type: BroadcastMessage.Type = BroadcastMessage.Type.WARNING
     ) {
-        error.log(SHARING)
+        error.logResult(VIEW_MODEL)
         broadcastMessages(
             userId = userId,
             message = error.getDefaultMessage(

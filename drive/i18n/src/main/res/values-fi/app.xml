@@ -148,6 +148,16 @@
   <string name="notification_content_text_backup_paused_background_restrictions">Varmuuskopiointia ei voida suorittaa taustalla</string>
   <string name="notification_content_text_backup_preparing">Valmistellaan varmuuskopiointia</string>
   <string name="notification_content_text_backup_failed_migration">Siirto käynnissä, päivitä sovelluksesi</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">Ladataan %1$d tiedosto</item>
+    <item quantity="other">Ladataan %1$d tiedostoa</item>
+  </plurals>
   <string name="notification_content_title_download_complete">Lataus on valmis</string>
   <string name="notification_content_title_forced_sign_out">Kirjaudu sisään</string>
   <string name="notification_content_text_forced_sign_out">Pahoittelut keskeytyksestä! Synkronoitaessa kohdattiin ongelma - kirjaudu sisään uudelleen, niin kaikki sujuu taas hyvin.</string>

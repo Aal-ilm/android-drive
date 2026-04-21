@@ -38,7 +38,6 @@ import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.extension.asHumanReadableString
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
-import me.proton.core.drive.feature.flag.domain.usecase.GetFeatureFlagFlow
 import me.proton.core.drive.messagequeue.domain.entity.BroadcastMessage
 import javax.inject.Inject
 import me.proton.core.drive.base.presentation.R as BasePresentation
@@ -50,7 +49,6 @@ class GetMoreFreeStorageViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context,
     configurationProvider: ConfigurationProvider,
     private val broadcastMessages: BroadcastMessages,
-    getFeatureFlag: GetFeatureFlagFlow,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel(), UserViewModel by UserViewModel(savedStateHandle) {
     private val uploadAFile = GetMoreFreeStorageViewState.Action(

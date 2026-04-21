@@ -26,9 +26,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.paging.CombinedLoadStates
 import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
-import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,10 +36,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -53,6 +52,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.extension.thumbnailVO
 import me.proton.android.drive.photos.domain.entity.PhotoBackupState
 import me.proton.android.drive.photos.domain.usecase.AddToAlbumInfo
@@ -92,7 +92,6 @@ import me.proton.core.drive.backup.domain.usecase.GetDisabledBackupState
 import me.proton.core.drive.backup.domain.usecase.RetryBackup
 import me.proton.core.drive.backup.domain.usecase.SyncFolders
 import me.proton.core.drive.base.data.extension.getDefaultMessage
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.entity.FastScrollAnchor
 import me.proton.core.drive.base.domain.entity.TimestampMs
 import me.proton.core.drive.base.domain.extension.filterSuccessOrError
@@ -100,7 +99,6 @@ import me.proton.core.drive.base.domain.extension.flowOf
 import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.extension.mapWithPrevious
 import me.proton.core.drive.base.domain.extension.onFailure
-import me.proton.core.drive.base.domain.log.LogTag.BACKUP
 import me.proton.core.drive.base.domain.log.LogTag.PHOTO
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.log.logId
@@ -117,9 +115,12 @@ import me.proton.core.drive.base.presentation.state.ListContentState
 import me.proton.core.drive.base.presentation.viewmodel.onLoadState
 import me.proton.core.drive.base.presentation.viewstate.TagViewState
 import me.proton.core.drive.drivelink.domain.entity.DriveLink
+import me.proton.core.drive.drivelink.photo.domain.entity.PhotoListingAnchor
+import me.proton.core.drive.drivelink.photo.domain.entity.PhotoListingsSyncState
 import me.proton.core.drive.drivelink.photo.domain.paging.PhotoDriveLinks
-import me.proton.core.drive.drivelink.photo.domain.usecase.GetPagedPhotoListingsList
 import me.proton.core.drive.drivelink.photo.domain.usecase.GetPhotoCount
+import me.proton.core.drive.drivelink.photo.domain.usecase.GetPhotoListingsPagingData
+import me.proton.core.drive.drivelink.photo.domain.usecase.PhotoListingsLoader
 import me.proton.core.drive.drivelink.selection.domain.usecase.GetSelectedDriveLinks
 import me.proton.core.drive.drivelink.selection.domain.usecase.SelectAll
 import me.proton.core.drive.feature.flag.domain.usecase.IsSpringSalePromoEnabled
@@ -148,6 +149,7 @@ import java.util.Calendar
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
+import me.proton.core.drive.base.data.extension.log as logResult
 import me.proton.core.drive.base.domain.extension.combine as baseCombine
 import me.proton.core.drive.i18n.R as I18N
 import me.proton.core.presentation.R as CorePresentation
@@ -165,7 +167,7 @@ class PhotosViewModel @Inject constructor(
     removeFromAlbumInfo: RemoveFromAlbumInfo,
     getAddToAlbumPhotoListings: GetAddToAlbumPhotoListings,
     getPhotoListingCount: GetPhotoListingCount,
-    getPagedPhotoListingsList: GetPagedPhotoListingsList,
+    private val getPhotoListingsPagingData: GetPhotoListingsPagingData,
     getBackupState: GetBackupState,
     getDisabledBackupState: GetDisabledBackupState,
     getPhotoCount: GetPhotoCount,
@@ -191,6 +193,7 @@ class PhotosViewModel @Inject constructor(
     private val cancelUserMessage: CancelUserMessage,
     private val toFirstItemMetricsNotifier: ToFirstItemMetricsNotifier,
     private val isSpringSalePromoEnabled: IsSpringSalePromoEnabled,
+    private val photoListingsLoader: PhotoListingsLoader,
     val backupPermissionsViewModel: BackupPermissionsViewModel,
 ) : PhotosPickerAndSelectionViewModel(
         savedStateHandle = savedStateHandle,
@@ -272,6 +275,7 @@ class PhotosViewModel @Inject constructor(
     val initialViewState = PhotosViewState(
         title = appContext.getString(I18N.string.photos_title),
         navigationIconResId = CorePresentation.drawable.ic_proton_hamburger,
+        navigationContentDescription = appContext.getString(I18N.string.common_open_side_menu_action),
         topBarActions = topBarActions,
         listContentState = ListContentState.Loading,
         showEmptyList = null,
@@ -304,7 +308,7 @@ class PhotosViewModel @Inject constructor(
                                 contentState = listContentState,
                                 shareType = Share.Type.PHOTO,
                             )
-                            error.log(VIEW_MODEL, "Cannot get drive link")
+                            error.logResult(VIEW_MODEL, "Cannot get drive link")
                             toFirstItemMetricsNotifier.reset()
                             if (previous is DataResult.Success) {
                                 retryLoadingPhotosDriveLinkFolder()
@@ -315,28 +319,75 @@ class PhotosViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, Eagerly, null)
 
+    private fun loaderKey(tag: PhotoTag?) =
+        tag?.let { PhotoListingAnchor.tagKey(it) } ?: PhotoListingAnchor.mainKey
+
+    private val _startLoader = combine(
+        driveLink.filterNotNull(),
+        photoListingsFilter,
+    ) { link, tag ->
+        photoListingsLoader.load(
+            key = loaderKey(tag),
+            userId = userId,
+            volumeId = link.volumeId,
+            shareId = link.id.shareId,
+            tag = tag,
+        )
+    }.stateIn(viewModelScope, Eagerly, Unit)
+
+    val loaderSyncState: StateFlow<PhotoListingsSyncState> = combine(
+        driveLink.filterNotNull(),
+        photoListingsFilter,
+    ) { link, tag ->
+        photoListingsLoader.stateFor(loaderKey(tag))
+    }.flatMapLatest { it }
+        .stateIn(viewModelScope, Eagerly, PhotoListingsSyncState.Idle)
+
+    private val _loaderErrors = viewModelScope.launch {
+        loaderSyncState.collect { syncState ->
+            if (syncState is PhotoListingsSyncState.Error && listContentState.value is ListContentState.Content) {
+                _homeEffect.emit(
+                    HomeEffect.ShowSnackbar(
+                        syncState.error.getDefaultMessage(appContext, configurationProvider.useExceptionMessage)
+                    )
+                )
+            }
+        }
+    }
+
+    private val effectiveContentState: StateFlow<ListContentState> = combine(
+        listContentState,
+        loaderSyncState,
+    ) { contentState, syncState ->
+        when {
+            syncState is PhotoListingsSyncState.Loading && contentState is ListContentState.Content ->
+                contentState.copy(isRefreshing = true)
+            syncState is PhotoListingsSyncState.Loading && contentState !is ListContentState.Content ->
+                ListContentState.Loading
+            syncState is PhotoListingsSyncState.Error && contentState !is ListContentState.Content ->
+                ListContentState.Error(
+                    message = syncState.error.getDefaultMessage(appContext, configurationProvider.useExceptionMessage),
+                    actionResId = I18N.string.common_retry,
+                )
+            else -> contentState
+        }
+    }.stateIn(viewModelScope, Eagerly, ListContentState.Loading)
+
     val driveLinksMap: Flow<Map<LinkId, DriveLink>> = photoDriveLinks.getDriveLinksMapFlow(userId)
 
-    val driveLinks: Flow<PagingData<PhotosItem>> = combine(
-        parentId.filterNotNull().distinctUntilChanged(),
-        photoListingsFilter,
-    ) { _, filter ->
-        filter
-    }.transformLatest { filter ->
-        emit(PagingData.empty())
-        emitAll(getPagedPhotoListingsList(userId, filter)
-            .map { pagingData ->
-                pagingData.map { photoListing ->
-                    PhotosItem.PhotoListing(
-                        id = photoListing.linkId,
-                        captureTime = photoListing.captureTime,
-                        link = null,
-                        thumbnailVO = photoListing.thumbnailVO,
-                    )
-                }
-            }
-            .map {
-                it.insertSeparators { before: PhotosItem.PhotoListing?, after: PhotosItem.PhotoListing? ->
+    private val pagingDataCache = mutableMapOf<PhotoTag?, Flow<PagingData<PhotosItem>>>()
+
+    private fun pagingDataForTag(link: DriveLink.Folder, tag: PhotoTag?): Flow<PagingData<PhotosItem>> =
+        pagingDataCache.getOrPut(tag) {
+            getPhotoListingsPagingData(userId, link.volumeId, tag) { listing ->
+                PhotosItem.PhotoListing(
+                    id = listing.linkId,
+                    captureTime = listing.captureTime,
+                    link = null,
+                    thumbnailVO = listing.thumbnailVO,
+                )
+            }.map { pagingData ->
+                pagingData.insertSeparators { before: PhotosItem.PhotoListing?, after: PhotosItem.PhotoListing? ->
                     if (after == null) {
                         null
                     } else if (before == null) {
@@ -356,10 +407,8 @@ class PhotosViewModel @Inject constructor(
                         val afterCalendar = Calendar.getInstance().apply {
                             timeInMillis = after.captureTime.value * 1000L
                         }
-                        if (beforeCalendar.get(Calendar.YEAR)
-                            != afterCalendar.get(Calendar.YEAR) ||
-                            beforeCalendar.get(Calendar.MONTH)
-                            != afterCalendar.get(Calendar.MONTH)
+                        if (beforeCalendar.get(Calendar.YEAR) != afterCalendar.get(Calendar.YEAR) ||
+                            beforeCalendar.get(Calendar.MONTH) != afterCalendar.get(Calendar.MONTH)
                         ) {
                             val cal = Calendar.getInstance().apply {
                                 timeInMillis = after.captureTime.value * 1000L
@@ -375,9 +424,17 @@ class PhotosViewModel @Inject constructor(
                         }
                     }
                 }
-            }
-        )
-    }.cachedIn(viewModelScope)
+            }.shareIn(viewModelScope, WhileSubscribed(5_000), replay = 1)
+        }
+
+    val photoItems: Flow<PagingData<PhotosItem>> = combine(
+        driveLink.filterNotNull(),
+        photoListingsFilter,
+    ) { link, filter ->
+        link to filter
+    }.flatMapLatest { (link, filter) ->
+        pagingDataForTag(link, filter)
+    }
 
     private val listContentAppendingState = MutableStateFlow<ListContentAppendingState>(
         ListContentAppendingState.Idle
@@ -413,7 +470,7 @@ class PhotosViewModel @Inject constructor(
 
     val viewState: Flow<PhotosViewState> = baseCombine(
         selected,
-        listContentState,
+        effectiveContentState,
         backupState,
         getPhotoCount(userId = userId),
         firstVisibleItemIndex,
@@ -475,6 +532,11 @@ class PhotosViewModel @Inject constructor(
                 CorePresentation.drawable.ic_proton_hamburger
             } else {
                 CorePresentation.drawable.ic_proton_cross
+            },
+            navigationContentDescription = if (showHamburgerMenuIcon) {
+                appContext.getString(I18N.string.common_open_side_menu_action)
+            } else {
+                appContext.getString(I18N.string.common_close_action)
             },
             notificationDotVisible = showHamburgerMenuIcon && notificationDotRequested,
             inMultiselect = selected.isNotEmpty() || inPickerMode,
@@ -660,7 +722,7 @@ class PhotosViewModel @Inject constructor(
             enablePhotosBackup(folderId).onSuccess { state ->
                 onPhotoBackupState(state)
             }.onFailure { error ->
-                error.log(BACKUP, "Cannot enable backup for folder: ${folderId.id}")
+                error.log(VIEW_MODEL, "Cannot enable backup for folder: ${folderId.id}")
                 broadcastMessages(
                     userId = userId,
                     message = error.getDefaultMessage(
@@ -702,7 +764,7 @@ class PhotosViewModel @Inject constructor(
         viewModelScope.launch {
             (parentId.value as? FolderId)?.let { folderId ->
                 retryBackup(folderId).onFailure { error ->
-                    error.log(BACKUP, "Cannot retry on backup")
+                    error.log(VIEW_MODEL, "Cannot retry on backup")
                     broadcastMessages(
                         userId = userId,
                         message = error.getDefaultMessage(
@@ -719,7 +781,7 @@ class PhotosViewModel @Inject constructor(
     private fun dismissBackgroundRestrictions() {
         viewModelScope.launch {
             cancelUserMessage(userId, UserMessage.BACKUP_BATTERY_SETTINGS).onFailure { error ->
-                error.log(BACKUP, "Cannot dismiss battery settings warning")
+                error.log(VIEW_MODEL, "Cannot dismiss battery settings warning")
             }
         }
     }
@@ -734,7 +796,16 @@ class PhotosViewModel @Inject constructor(
             if (driveLink.value == null) {
                 retryLoadingPhotosDriveLinkFolder()
             } else {
-                retryList()
+                driveLink.value?.let { link ->
+                    val tag = photoListingsFilter.value
+                    photoListingsLoader.retry(
+                        key = loaderKey(tag),
+                        userId = userId,
+                        volumeId = link.volumeId,
+                        shareId = link.id.shareId,
+                        tag = tag,
+                    )
+                }
             }
         }
     }
@@ -742,10 +813,6 @@ class PhotosViewModel @Inject constructor(
     private suspend fun retryLoadingPhotosDriveLinkFolder() {
         retryTrigger.emit(Unit)
         listContentState.value = ListContentState.Loading
-    }
-
-    private suspend fun retryList() {
-        _listEffect.emit(ListEffect.RETRY)
     }
 
     private fun onRefresh() {
@@ -757,6 +824,16 @@ class PhotosViewModel @Inject constructor(
                 syncFolders(folderId, RECENT_BACKUP_PRIORITY).onFailure { error ->
                     error.log(VIEW_MODEL, "Failed sync folder on manual refresh")
                 }
+            }
+            driveLink.value?.let { link ->
+                val tag = photoListingsFilter.value
+                photoListingsLoader.refresh(
+                    key = loaderKey(tag),
+                    userId = userId,
+                    volumeId = link.volumeId,
+                    shareId = link.id.shareId,
+                    tag = tag,
+                )
             }
             _listEffect.emit(ListEffect.REFRESH)
         }
@@ -792,7 +869,10 @@ class PhotosViewModel @Inject constructor(
         isFastScrollEnabled.value = isFastScrollThresholdReached(items.size, anchors, anchorsInLabel)
     }
 
-    private val fastScrollAnchors: MutableMap<Pair<Int, Int>, List<FastScrollAnchor>> = mutableMapOf()
+    private val fastScrollAnchors: MutableMap<Pair<Int, Int>, List<FastScrollAnchor>> =
+        object : LinkedHashMap<Pair<Int, Int>, List<FastScrollAnchor>>() {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Pair<Int, Int>, List<FastScrollAnchor>>) = size > 1
+        }
 
     private val List<PhotosItem>.itemsHash get() = this.fold(1) { acc, item ->
         31 * acc + item.hashCode()

@@ -30,6 +30,7 @@ import me.proton.core.drive.link.domain.entity.Link
 import me.proton.core.drive.link.domain.extension.hasShareLink
 import me.proton.core.drive.link.domain.extension.isPhoto
 import me.proton.core.drive.link.domain.extension.isSharedByLinkOrWithUsers
+import me.proton.core.drive.link.domain.extension.shareId
 import me.proton.core.drive.photo.domain.entity.PhotoListing
 
 fun DriveLink.updateLastModified(lastModified: TimestampS) = link.let { link ->
@@ -60,7 +61,7 @@ val DriveLink.isSharedWithUsers: Boolean
     get() = (shareInvitationCount ?: 0) > 0 || (shareMemberCount ?: 0) > 0
 
 val DriveLink.isShareMember: Boolean
-    get() = sharePermissions?.isOwner == false
+    get() = sharePermissions?.isOwner == false && shareUser?.id != null && shareId == link.sharingDetails?.shareId
 
 val DriveLink.isShareReadOnly: Boolean get() = sharePermissions?.let { sharePermissions ->
     sharePermissions.canRead && !sharePermissions.canWrite

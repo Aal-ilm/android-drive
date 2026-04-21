@@ -31,13 +31,13 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.options.ShareLinkPermissionsOption
 import me.proton.core.compose.component.bottomsheet.RunAction
 import me.proton.core.domain.arch.mapSuccessValueOrNull
 import me.proton.core.drive.base.data.extension.getDefaultMessage
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.entity.Permissions
-import me.proton.core.drive.base.domain.log.LogTag.SHARING
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.extension.require
@@ -112,7 +112,7 @@ class ShareLinkPermissionsViewModel @Inject constructor(
             permissions = permissions,
         ).onFailure { error ->
             error.log(
-                SHARING,
+                VIEW_MODEL,
                 "Cannot update permissions for ${sharedDriveLink.shareUrlId.id}"
             )
             broadcastMessages(

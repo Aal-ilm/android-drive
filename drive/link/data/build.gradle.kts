@@ -19,7 +19,6 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("kapt")
 }
 
 android {
@@ -37,6 +36,6 @@ driveModule(
     implementation(project(":drive:share:data"))
     implementation(libs.retrofit)
     androidTestImplementation(project(":drive:db"))
-    kaptAndroidTest(libs.androidx.room.compiler)
+    add("kspAndroidTest", libs.androidx.room.compiler)
     testImplementation(project(":drive:db-test"))
 }

@@ -208,14 +208,13 @@ class ParentFolderOptionsViewModel @Inject constructor(
                     folder = folder,
                     uploadFileDescriptions = uriStrings.map { uri -> UploadFileDescription(uri) },
                     priority = UploadFileLink.USER_PRIORITY,
-                )
-                    .onFailure { error ->
-                        error.log(VIEW_MODEL, "Upload files failed")
-                        if (error is NotEnoughSpaceException) {
-                            navigateToStorageFull()
-                            return@launch
-                        }
+                ).onFailure { error ->
+                    error.log(VIEW_MODEL, "Upload files failed in ${folder.id.id}")
+                    if (error is NotEnoughSpaceException) {
+                        navigateToStorageFull()
+                        return@launch
                     }
+                }
             }
             dismiss()
         }
@@ -228,10 +227,9 @@ class ParentFolderOptionsViewModel @Inject constructor(
                     folderId = folder.id,
                     uriString = uriString,
                     shouldBroadcastMessage = true,
-                )
-                    .onFailure { error ->
-                        error.log(VIEW_MODEL, "Upload folder failed")
-                    }
+                ).onFailure { error ->
+                    error.log(VIEW_MODEL, "Upload folder failed in ${folder.id.id}")
+                }
             }
             dismiss()
         }
@@ -247,15 +245,14 @@ class ParentFolderOptionsViewModel @Inject constructor(
                         uploadFileDescriptions = listOf(UploadFileDescription(uri.toString())),
                         shouldDeleteSource = true,
                         priority = UploadFileLink.USER_PRIORITY,
-                    )
-                        .onFailure { error ->
-                            error.log(VIEW_MODEL, "Upload file failed")
-                            if (error is NotEnoughSpaceException) {
-                                navigateToStorageFull()
-                                updatePhotoUri(null)
-                                return@launch
-                            }
+                    ).onFailure { error ->
+                        error.log(VIEW_MODEL, "Upload file failed in ${folder.id.id}")
+                        if (error is NotEnoughSpaceException) {
+                            navigateToStorageFull()
+                            updatePhotoUri(null)
+                            return@launch
                         }
+                    }
                 }
             } else {
                 withContext(Job() + Dispatchers.IO) {
@@ -351,6 +348,7 @@ class ParentFolderOptionsViewModel @Inject constructor(
                 navigateToPreview(fileId)
             }
             .onFailure { error ->
+                error.log(VIEW_MODEL, "Failed to create new document $documentType in ${folderId.id}")
                 broadcastMessages(
                     userId = userId,
                     message = error.getDefaultMessage(appContext, configurationProvider.useExceptionMessage),

@@ -368,7 +368,7 @@ fun OfflineIcon(
             modifier = modifier.size(ExtraSmallIconSize).testTag(FilesTestTag.offlineIconDownloaded),
             painter = painterResource(id = BasePresentation.drawable.ic_status_downloaded),
             tint = ProtonTheme.colors.iconWeak,
-            contentDescription = null
+            contentDescription = stringResource(I18N.string.common_downloaded)
         )
         is DownloadState.Downloading -> CircularProgressIndicator(
             modifier = modifier.size(ExtraSmallIconSize).testTag(FilesTestTag.offlineDownloding),
@@ -378,7 +378,7 @@ fun OfflineIcon(
             modifier = modifier.size(ExtraSmallIconSize).testTag(FilesTestTag.offlineIconWaiting),
             painter = painterResource(id = BasePresentation.drawable.ic_status_waiting_for_download),
             tint = ProtonTheme.colors.iconWeak,
-            contentDescription = null
+            contentDescription = stringResource(I18N.string.common_waiting_for_download)
         )
     }
 }
@@ -486,7 +486,7 @@ fun MoreOptions(
     ) {
         Icon(
             painter = painterResource(id = CorePresentation.drawable.ic_proton_three_dots_vertical),
-            contentDescription = null,
+            contentDescription = stringResource(I18N.string.common_more),
             tint = ProtonTheme.colors.interactionStrongNorm
         )
     }

@@ -35,7 +35,7 @@ import me.proton.android.drive.ui.viewevent.PhotosExportDataViewEvent
 import me.proton.android.drive.ui.viewstate.PhotosExportDataViewState
 import me.proton.android.drive.usecase.ExportPhotoData
 import me.proton.android.drive.usecase.SendFile
-import me.proton.core.drive.base.domain.log.LogTag.BACKUP
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
@@ -82,7 +82,7 @@ class PhotosExportDataViewModel @Inject constructor(
 
     private suspend fun onExportData(context: Context) {
         val onFailure: (exception: Throwable) -> Unit = { error ->
-            error.log(BACKUP)
+            error.log(VIEW_MODEL, "Failed to export data")
             broadcastMessages(
                 userId = userId,
                 message = error.getDefaultMessage(

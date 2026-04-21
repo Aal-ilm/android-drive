@@ -18,6 +18,8 @@
 
 package me.proton.core.drive.files.domain.operation
 
+import me.proton.core.drive.base.domain.log.LogTag
+import me.proton.core.drive.base.domain.usecase.ReportError
 import me.proton.core.drive.files.domain.operation.notification.MoveFileExtra
 import me.proton.core.drive.files.domain.usecase.MoveFile
 import me.proton.core.drive.messagequeue.domain.ActionProvider
@@ -27,6 +29,7 @@ import me.proton.core.drive.i18n.R as I18N
 
 class FileOperationActionProvider @Inject constructor(
     private val moveFile: MoveFile,
+    private val reportError: ReportError
 ) : ActionProvider {
 
     override fun provideAction(extra: Serializable?): ActionProvider.Action? =
@@ -38,7 +41,9 @@ class FileOperationActionProvider @Inject constructor(
 
     private fun MoveFileExtra.provideAction(): ActionProvider.Action? = if (exception != null) {
         ActionProvider.Action(I18N.string.files_operation_retry_action) {
-            moveFile(userId, links.map { pair -> pair.second }, parentId)
+            moveFile(userId, links.map { pair -> pair.second }, parentId).onFailure { error ->
+                reportError(LogTag.MOVE, "Failed to move file to ${parentId.id}")
+            }
         }
     } else if (allowUndo) {
         ActionProvider.Action(I18N.string.files_operation_undo_action) {
@@ -50,7 +55,9 @@ class FileOperationActionProvider @Inject constructor(
                         linkIds = children[originalParentId]!!.map { pair -> pair.second },
                         parentId = originalParentId,
                         allowUndo = false,
-                    )
+                    ).onFailure { error ->
+                        reportError(LogTag.MOVE, "Failed to move file to ${originalParentId.id}")
+                    }
                 }
             }
         }

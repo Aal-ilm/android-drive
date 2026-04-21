@@ -117,7 +117,7 @@ class GetFile @Inject constructor(
             CoreLogger.w(LogTag.GET_FILE, "Download ${driveLink.id.id} failed as it is not retryable and there is no network connection")
             return@flow emit(State.Error.NoConnection)
         }
-        download(driveLink, retryable)
+        download(driveLink, retryable).getOrThrow()
         try {
             waitForDownloadToFinish(driveLink)
         } catch (e: Exception) {

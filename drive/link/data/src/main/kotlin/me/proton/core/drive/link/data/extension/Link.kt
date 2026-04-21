@@ -76,6 +76,7 @@ fun Link.toLinkWithProperties() = LinkWithProperties(
             mainPhotoLinkId = mainPhotoLinkId,
             defaultThumbnailId = defaultThumbnailId,
             photoThumbnailId = photoThumbnailId,
+            activeRevisionChecksumVerified = activeRevisionChecksumVerified,
         )
         is Link.Folder -> LinkFolderPropertiesEntity(
             userId = id.userId,

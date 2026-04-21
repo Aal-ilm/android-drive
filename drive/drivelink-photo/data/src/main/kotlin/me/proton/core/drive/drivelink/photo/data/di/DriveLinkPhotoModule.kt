@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Proton AG.
+ * Copyright (c) 2026 Proton AG.
  * This file is part of Proton Core.
  *
  * Proton Core is free software: you can redistribute it and/or modify
@@ -22,35 +22,29 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import me.proton.core.drive.base.domain.provider.ConfigurationProvider
-import me.proton.core.drive.drivelink.photo.domain.manager.PhotoShareMigrationManager
-import me.proton.core.drive.drivelink.photo.domain.usecase.PhotoShareCleanup
-import me.proton.core.drive.photo.domain.repository.PhotoShareMigrationRepository
-import me.proton.core.drive.volume.domain.usecase.GetVolume
-import me.proton.core.drive.volume.domain.usecase.HasPhotoVolume
+import kotlinx.coroutines.SupervisorJob
+import me.proton.core.drive.drivelink.photo.domain.repository.PhotoListingAnchorRepository
+import me.proton.core.drive.drivelink.photo.domain.usecase.PhotoListingsLoader
+import me.proton.core.drive.drivelink.photo.domain.usecase.RefreshPhotoListings
+import me.proton.core.drive.photo.domain.usecase.FetchAllPhotoListings
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DriveLinkPhotoModule {
 
-    @Singleton
     @Provides
-    fun providePhotoShareMigrationManager(
-        photoShareMigrationRepository: PhotoShareMigrationRepository,
-        configurationProvider: ConfigurationProvider,
-        getVolume: GetVolume,
-        photoShareCleanup: PhotoShareCleanup,
-        hasPhotoVolume: HasPhotoVolume,
-    ): PhotoShareMigrationManager =
-        PhotoShareMigrationManager(
-            coroutineContext = Job() + Dispatchers.IO,
-            configurationProvider = configurationProvider,
-            photoShareMigrationRepository = photoShareMigrationRepository,
-            getVolume = getVolume,
-            photoShareCleanup = photoShareCleanup,
-            hasPhotoVolume = hasPhotoVolume,
-        )
+    @Singleton
+    fun providePhotoListingsLoader(
+        fetchAllPhotoListings: FetchAllPhotoListings,
+        refreshPhotoListings: RefreshPhotoListings,
+        photoListingAnchorRepository: PhotoListingAnchorRepository,
+    ): PhotoListingsLoader = PhotoListingsLoader(
+        appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+        fetchAllPhotoListings = fetchAllPhotoListings,
+        refreshPhotoListings = refreshPhotoListings,
+        photoListingAnchorRepository = photoListingAnchorRepository,
+    )
 }

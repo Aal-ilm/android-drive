@@ -32,7 +32,9 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.firstOrNull
 import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.announce.event.domain.usecase.AnnounceEvent
+import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.data.workmanager.addTags
+import me.proton.core.drive.base.domain.log.LogTag.DOCUMENTS_PROVIDER
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.documentsprovider.data.extension.exportToMediaStoreDownloads
@@ -73,7 +75,9 @@ class ExportToDownloadWorker @AssistedInject constructor(
         uri.exportToMediaStoreDownloads(applicationContext.contentResolver, driveLink)
 
     override suspend fun handleResult(result: Result) {
-        deselectLinks(selectionId)
+        deselectLinks(selectionId).onFailure { error ->
+            error.log(DOCUMENTS_PROVIDER, "Failed to deselect links")
+        }
     }
 
     companion object {

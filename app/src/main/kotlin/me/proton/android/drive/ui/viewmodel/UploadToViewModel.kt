@@ -41,7 +41,7 @@ import me.proton.android.drive.ui.navigation.UploadParameters
 import me.proton.android.drive.ui.viewevent.UploadToViewEvent
 import me.proton.android.drive.ui.viewstate.UploadToViewState
 import me.proton.core.domain.arch.mapSuccessValueOrNull
-import me.proton.core.drive.base.domain.log.LogTag
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.drivelink.crypto.domain.usecase.GetDecryptedDriveLink
@@ -97,6 +97,7 @@ class UploadToViewModel @Inject constructor(
         filesViewState = initialFilesViewState,
         title = "",
         navigationIconResId = CorePresentation.drawable.ic_proton_cross,
+        navigationContentDescription = appContext.getString(I18N.string.common_close_action),
         fileNames = uploadParameters?.uris?.map { uri -> uri.fileName } ?: emptyList(),
     )
     val driveLink: StateFlow<DriveLink.Folder?> = getDriveLink(userId, folderId = null)
@@ -121,6 +122,11 @@ class UploadToViewModel @Inject constructor(
                 CorePresentation.drawable.ic_proton_cross
             } else {
                 CorePresentation.drawable.ic_arrow_back
+            },
+            navigationContentDescription = if (parentLink == null || isRoot) {
+                appContext.getString(I18N.string.common_close_action)
+            } else {
+                appContext.getString(I18N.string.common_back_action)
             },
         )
     }.shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
@@ -176,7 +182,7 @@ class UploadToViewModel @Inject constructor(
                     exitApp()
                 }
             }.onFailure { error ->
-                error.log(LogTag.UPLOAD, "Failed to upload ${copiedUris.size} files")
+                error.log(VIEW_MODEL, "Failed to upload ${copiedUris.size} files")
                 cleanupOnFailure(copiedUris)
                 when (error) {
                     is NotEnoughSpaceException -> navigateToStorageFull()

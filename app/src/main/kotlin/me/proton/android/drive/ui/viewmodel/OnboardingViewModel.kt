@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.photos.domain.entity.PhotoBackupState
 import me.proton.android.drive.photos.domain.usecase.EnablePhotosBackup
 import me.proton.android.drive.photos.domain.usecase.GetPhotosDriveLink
@@ -39,19 +40,16 @@ import me.proton.android.drive.photos.presentation.viewstate.BackupPermissionsVi
 import me.proton.android.drive.usecase.MarkOnboardingAsShown
 import me.proton.core.drive.backup.domain.entity.BackupPermissions
 import me.proton.core.drive.backup.domain.manager.BackupPermissionsManager
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.entity.Bytes
 import me.proton.core.drive.base.domain.extension.firstSuccessOrError
 import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.extension.toResult
-import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.presentation.viewevent.OnboardingViewEvent
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
 import me.proton.core.drive.base.presentation.viewstate.OnboardingViewState
 import me.proton.core.drive.user.domain.extension.isFree
 import me.proton.core.user.domain.usecase.GetUser
-import me.proton.core.util.kotlin.CoreLogger
 import javax.inject.Inject
 import me.proton.core.drive.i18n.R as I18N
 
@@ -147,7 +145,7 @@ class OnboardingViewModel @Inject constructor(
             getPhotosDriveLink(userId)
                 .firstSuccessOrError()
                 .toResult()
-                .getOrNull(LogTag.BACKUP, "Getting photos drive link during onboarding failed")
+                .getOrNull(VIEW_MODEL, "Getting photos drive link during onboarding failed")
                 ?.id
                 ?.let { photoRootId ->
                     enablePhotosBackup(photoRootId)
@@ -158,7 +156,7 @@ class OnboardingViewModel @Inject constructor(
                             }
                         }
                         .onFailure { error ->
-                            error.log(LogTag.BACKUP, "Enabling backup during onboarding failed")
+                            error.log(VIEW_MODEL, "Enabling backup during onboarding failed")
                             dismiss?.invoke()
                         }
                 }
@@ -171,8 +169,9 @@ class OnboardingViewModel @Inject constructor(
 
     private fun onboardingShown() {
         viewModelScope.launch {
-            markOnboardingAsShown()
-                .getOrNull(VIEW_MODEL, "Marking onboarding as shown failed")
+            markOnboardingAsShown().onFailure { error ->
+                error.log(VIEW_MODEL, "Marking onboarding as shown failed")
+            }
         }
     }
 }

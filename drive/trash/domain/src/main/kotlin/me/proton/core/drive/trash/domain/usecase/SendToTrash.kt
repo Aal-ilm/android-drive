@@ -21,6 +21,7 @@ package me.proton.core.drive.trash.domain.usecase
 import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.base.domain.extension.onFailure
 import me.proton.core.drive.base.domain.extension.toResult
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.link.domain.entity.BaseLink
 import me.proton.core.drive.link.domain.entity.LinkId
 import me.proton.core.drive.link.domain.entity.ParentId
@@ -37,18 +38,23 @@ class SendToTrash @Inject constructor(
     private val getShare: GetShare,
 ) {
 
-    suspend operator fun invoke(userId: UserId, link: BaseLink) =
-        invoke(userId, listOf(link))
+    suspend operator fun invoke(userId: UserId, link: BaseLink) = coRunCatching {
+        invoke(userId, listOf(link)).getOrThrow()
+    }
 
-    suspend operator fun invoke(userId: UserId, links: List<BaseLink>) {
+    suspend operator fun invoke(userId: UserId, links: List<BaseLink>) = coRunCatching {
         links.applyGroupedByShareAndParentFolder { parentId, groupedLinks ->
-            invoke(userId, parentId, groupedLinks.map { link -> link.id })
+            invoke(userId, parentId, groupedLinks.map { link -> link.id }).getOrThrow()
         }
     }
 
-    suspend operator fun invoke(userId: UserId, parentId: ParentId, linkIds: List<LinkId>) {
+    suspend operator fun invoke(
+        userId: UserId,
+        parentId: ParentId,
+        linkIds: List<LinkId>,
+    ) = coRunCatching {
         getShare(parentId.shareId).toResult().getOrNull()?.let { share ->
-            invoke(userId, share.volumeId, linkIds)
+            invoke(userId, share.volumeId, linkIds).getOrThrow()
         }
     }
 
@@ -56,7 +62,7 @@ class SendToTrash @Inject constructor(
         userId: UserId,
         volumeId: VolumeId,
         linkIds: List<LinkId>,
-    ) {
+    ) = coRunCatching {
         trashRepository.insertOrUpdateTrashState(volumeId, linkIds, TrashState.TRASHING)
         trashManager.trash(userId, volumeId, linkIds).onFailure {
             trashRepository.removeTrashState(linkIds)

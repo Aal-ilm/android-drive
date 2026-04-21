@@ -48,6 +48,7 @@ import me.proton.android.drive.provider.AppBuildConfigFieldsProvider
 import me.proton.android.drive.provider.BuildConfigurationProvider
 import me.proton.android.drive.provider.AppProtonDriveClientProvider
 import me.proton.android.drive.provider.AppProtonPhotosClientProvider
+import me.proton.android.drive.provider.AppProtonSdkClientProvider
 import me.proton.android.drive.repository.BridgeFindDuplicatesRepository
 import me.proton.android.drive.repository.ClientUidRepositoryImpl
 import me.proton.android.drive.settings.DebugSettings
@@ -75,6 +76,7 @@ import me.proton.core.drive.base.domain.usecase.DriveUrlBuilder
 import me.proton.core.drive.documentsprovider.domain.usecase.GetDocumentsProviderRoots
 import me.proton.core.drive.folder.create.domain.provider.OpenFolderActionProvider
 import me.proton.core.drive.key.domain.handler.PublicKeyEventHandler
+import me.proton.core.drive.link.domain.provider.ProtonSdkClientProvider
 import me.proton.core.drive.log.domain.handler.LogEventHandler
 import me.proton.core.drive.messagequeue.domain.ActionProvider
 import me.proton.core.drive.notification.data.provider.NotificationBuilderProvider
@@ -249,6 +251,10 @@ abstract class ApplicationBindsModule {
     @Binds
     @Singleton
     abstract fun bindsAppProtonPhotosClientProvider(impl: AppProtonPhotosClientProvider): ProtonPhotosClientProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindsAppProtonSdkClientProvider(impl: AppProtonSdkClientProvider): ProtonSdkClientProvider
 
     @Binds
     @IntoSet

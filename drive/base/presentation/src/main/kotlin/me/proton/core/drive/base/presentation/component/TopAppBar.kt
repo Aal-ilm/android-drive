@@ -59,6 +59,7 @@ import me.proton.core.drive.base.presentation.component.TopAppBarComponentTestTa
 @Composable
 fun TopAppBar(
     navigationIcon: Painter?,
+    navigationContentDescription: String?,
     onNavigationIcon: () -> Unit,
     title: String,
     modifier: Modifier = Modifier,
@@ -69,6 +70,7 @@ fun TopAppBar(
 ) {
     TopAppBar(
         navigationIcon = navigationIcon,
+        navigationContentDescription = navigationContentDescription,
         onNavigationIcon = onNavigationIcon,
         title = { modifier ->
             Title(
@@ -87,6 +89,7 @@ fun TopAppBar(
 @Composable
 fun TopAppBar(
     navigationIcon: Painter?,
+    navigationContentDescription: String?,
     onNavigationIcon: () -> Unit,
     title: @Composable (Modifier) -> Unit,
     modifier: Modifier = Modifier,
@@ -97,12 +100,13 @@ fun TopAppBar(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     TopAppBar(
-        modifier = modifier,
-        title = { title(Modifier.testTag(TopAppBarComponentTestTag.appBar)) },
+        modifier = modifier.testTag(TopAppBarComponentTestTag.appBar),
+        title = { title(Modifier.testTag(TopAppBarComponentTestTag.appBarTitle)) },
         navigationIcon = {
             if (navigationIcon != null) {
                 NavigationIconButton(
                     navigationIcon = navigationIcon,
+                    navigationContentDescription = navigationContentDescription,
                     onNavigationIcon = onNavigationIcon,
                     notificationDotVisible = notificationDotVisible
                 )
@@ -137,6 +141,7 @@ fun Title(
 @Composable
 private fun NavigationIconButton(
     navigationIcon: Painter,
+    navigationContentDescription: String?,
     onNavigationIcon: () -> Unit,
     notificationDotVisible: Boolean
 ) {
@@ -149,7 +154,7 @@ private fun NavigationIconButton(
         ) { modifier ->
             Icon(
                 painter = navigationIcon,
-                contentDescription = null,
+                contentDescription = navigationContentDescription,
                 modifier = modifier.padding(4.dp),
             )
         }
@@ -242,6 +247,7 @@ val TopAppBarHeight = 56.dp
 
 object TopAppBarComponentTestTag {
     const val appBar = "top app bar"
+    const val appBarTitle = "top app bar title"
     const val navigationButton = "top app bar navigation button"
     const val actionButton = "top app bar action button"
 }

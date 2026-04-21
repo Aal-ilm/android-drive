@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.first
 import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.base.domain.entity.Bytes
 import me.proton.core.drive.base.domain.extension.bytes
-import me.proton.core.drive.base.domain.extension.toResult
 import me.proton.core.drive.base.domain.log.LogTag.UPLOAD
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.GetInternalStorageInfo
@@ -33,14 +32,11 @@ import me.proton.core.drive.linkupload.domain.extension.sizeOrZero
 import me.proton.core.drive.linkupload.domain.usecase.GetPendingUploadFileLinksSize
 import me.proton.core.drive.linkupload.domain.usecase.GetUploadFileLinksCount
 import me.proton.core.drive.linkupload.domain.usecase.GetUploadFileLinksWithUriByPriority
-import me.proton.core.drive.volume.domain.entity.Volume
-import me.proton.core.drive.volume.domain.usecase.GetActiveVolumes
 import me.proton.core.util.kotlin.CoreLogger
 import javax.inject.Inject
 
 class GetNextUploadFileLinks @Inject constructor(
     private val configurationProvider: ConfigurationProvider,
-    private val getActiveVolumes: GetActiveVolumes,
     private val getUploadFileLinksCount: GetUploadFileLinksCount,
     private val getPendingUploadFileLinksSize: GetPendingUploadFileLinksSize,
     private val getUploadFileLinksWithUriByPriority: GetUploadFileLinksWithUriByPriority,
@@ -49,15 +45,20 @@ class GetNextUploadFileLinks @Inject constructor(
     suspend operator fun invoke(
         userId: UserId,
     ): Result<List<UploadFileLink>> = coRunCatching {
-        getActiveVolumes(userId).toResult().getOrThrow().map { volume ->
-            invoke(userId, volume)
-        }.flatten()
+        val photo = invoke(userId, isPhotoShare = true)
+        val drive = invoke(userId, isPhotoShare = false)
+        val total = photo.size + drive.size
+        if (total == 0) {
+            CoreLogger.d(UPLOAD, "Nothing to upload")
+        } else {
+            CoreLogger.d(UPLOAD, "Uploading $total files: photo=${photo.size}, drive=${drive.size}")
+        }
+        photo + drive
     }
 
-    private suspend fun invoke(userId: UserId, volume: Volume): List<UploadFileLink> {
-        val uploadCount = getUploadFileLinksCount(userId, volume.id).first()
+    private suspend fun invoke(userId: UserId, isPhotoShare: Boolean): List<UploadFileLink> {
+        val uploadCount = getUploadFileLinksCount(userId, isPhotoShare).first()
         if (uploadCount.total == 0) {
-            CoreLogger.d(UPLOAD, "Nothing to upload")
             return emptyList()
         }
         val running = uploadCount.totalWithUri - uploadCount.totalUnprocessedWithUri
@@ -70,13 +71,13 @@ class GetNextUploadFileLinks @Inject constructor(
 
         val uploadFileLinks = getUploadFileLinksWithUriByPriority(
             userId = userId,
-            volumeId = volume.id,
+            isPhotoShare = isPhotoShare,
             states = setOf(UploadState.UNPROCESSED, UploadState.CREATING_NEW_FILE),
             count = uploadCount.totalWithUri,
         ).first()
 
         if (uploadFileLinks.isEmpty()) {
-            CoreLogger.d(UPLOAD, "Nothing to upload for ${volume.type}")
+            CoreLogger.d(UPLOAD, "Nothing to upload for isPhotoShare=$isPhotoShare (${uploadCount.totalWithUri})")
             return emptyList()
         }
 

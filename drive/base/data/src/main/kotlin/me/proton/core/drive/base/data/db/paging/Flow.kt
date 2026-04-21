@@ -24,7 +24,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,7 +42,6 @@ import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.extension.mapWithPrevious
 import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.util.kotlin.CoreLogger
-import kotlin.coroutines.CoroutineContext
 import kotlin.math.ceil
 
 /**
@@ -57,6 +57,12 @@ fun <T : Any> Flow<Result<List<T>>>.asPagingSource(
 ): PagingSource<Int, T> =
     object : PagingSource<Int, T>() {
 
+        private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+        init {
+            registerInvalidatedCallback { scope.cancel() }
+        }
+
         private val listFlow: StateFlow<Result<List<T>>?> =
             takeWhile { invalid.not() }
                 .distinctUntilChanged()
@@ -66,7 +72,7 @@ fun <T : Any> Flow<Result<List<T>>>.asPagingSource(
                     }
                     current
                 }
-                .stateIn(PagingSourceScope, SharingStarted.Eagerly, null)
+                .stateIn(scope, SharingStarted.Eagerly, null)
 
         override fun getRefreshKey(state: PagingState<Int, T>): Int? {
             return state.anchorPosition?.let { anchorPosition ->
@@ -117,11 +123,6 @@ fun <T : Any> Flow<Result<List<T>>>.asPagingSource(
         }
     }
 
-object PagingSourceScope : CoroutineScope {
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.IO + Job()
-}
-
 @OptIn(ExperimentalCoroutinesApi::class)
 fun <T : Any> ((fromIndex: Int, count: Int) -> Flow<Result<List<T>>>).asPagingSource(
     sourceSize: Flow<Int>,
@@ -130,6 +131,12 @@ fun <T : Any> ((fromIndex: Int, count: Int) -> Flow<Result<List<T>>>).asPagingSo
     processPage: (suspend (List<T>) -> List<T>)? = null,
 ): PagingSource<Int, T> =
     object : PagingSource<Int, T>() {
+
+        private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+        init {
+            registerInvalidatedCallback { scope.cancel() }
+        }
 
         private val itemsCount: StateFlow<Int?> = sourceSize
             .takeWhile { invalid.not() }
@@ -144,7 +151,7 @@ fun <T : Any> ((fromIndex: Int, count: Int) -> Flow<Result<List<T>>>).asPagingSo
                 }
                 current
             }
-            .stateIn(PagingSourceScope, SharingStarted.Eagerly, null)
+            .stateIn(scope, SharingStarted.Eagerly, null)
 
         private val fromIndex = MutableStateFlow<Int?>(null)
 
@@ -169,7 +176,7 @@ fun <T : Any> ((fromIndex: Int, count: Int) -> Flow<Result<List<T>>>).asPagingSo
                         }
                 )
             }
-            .stateIn(PagingSourceScope, SharingStarted.Eagerly, null)
+            .stateIn(scope, SharingStarted.Eagerly, null)
 
         override fun getRefreshKey(state: PagingState<Int, T>): Int? =
             state.anchorPosition?.let { anchorPosition ->

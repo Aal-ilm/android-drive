@@ -35,6 +35,7 @@ import me.proton.core.drive.base.domain.extension.bytes
 import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.extension.mapWithPrevious
 import me.proton.core.drive.base.domain.extension.toResult
+import me.proton.core.drive.base.domain.formatter.DateTimeFormatter
 import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.drive.base.domain.log.logId
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
@@ -45,13 +46,13 @@ import me.proton.core.drive.drivelink.crypto.domain.usecase.IntegrityMetricsNoti
 import me.proton.core.drive.drivelink.domain.usecase.GetDriveLink
 import me.proton.core.drive.drivelink.download.domain.exception.InvalidBlocksException
 import me.proton.core.drive.file.base.domain.entity.Block
+import me.proton.core.drive.file.base.domain.extension.captureTime
 import me.proton.core.drive.file.base.domain.extension.verifyOrDelete
 import me.proton.core.drive.file.base.domain.usecase.GetBlockFile
+import me.proton.core.drive.file.base.domain.usecase.GetRevision
 import me.proton.core.drive.link.domain.entity.FileId
 import me.proton.core.drive.link.domain.extension.userId
-import me.proton.core.drive.linkdownload.domain.entity.DownloadState
 import me.proton.core.drive.linkdownload.domain.usecase.RemoveSignatureVerificationFailed
-import me.proton.core.drive.linkdownload.domain.usecase.SetDownloadState
 import me.proton.core.drive.linkdownload.domain.usecase.SetSignatureVerificationFailed
 import me.proton.core.drive.thumbnail.domain.usecase.GetThumbnailPermanentFile
 import me.proton.core.drive.volume.domain.entity.VolumeId
@@ -59,12 +60,11 @@ import me.proton.core.util.kotlin.CoreLogger
 import javax.inject.Inject
 
 class DownloadFileLegacy @Inject constructor(
-    private val setDownloadingAndGetRevision: SetDownloadingAndGetRevision,
+    private val getRevision: GetRevision,
     private val getBlockFile: GetBlockFile,
     private val downloadBlock: DownloadBlock,
     private val verifyDownloadedBlocks: VerifyDownloadedBlocks,
     private val configurationProvider: ConfigurationProvider,
-    private val setDownloadState: SetDownloadState,
     private val getThumbnailPermanentFile: GetThumbnailPermanentFile,
     private val moveFileIfExists: MoveFileIfExists,
     private val getDriveLink: GetDriveLink,
@@ -75,6 +75,7 @@ class DownloadFileLegacy @Inject constructor(
     private val verifyDownloadedFile: VerifyDownloadedFile,
     private val integrityMetricsNotifier: IntegrityMetricsNotifier,
     private val reportError: ReportError,
+    private val dateTimeFormatter: DateTimeFormatter,
 ) {
 
     suspend operator fun invoke(
@@ -85,12 +86,11 @@ class DownloadFileLegacy @Inject constructor(
         progress: MutableStateFlow<Percentage>,
     ) = coRunCatching {
         val driveLink = getDriveLink(fileId).toResult().getOrThrow()
-        val revision = setDownloadingAndGetRevision(fileId, revisionId).getOrThrow()
+        val revision = getRevision(fileId, revisionId).getOrThrow()
         getThumbnailPermanentFile(volumeId, driveLink.link, revisionId).getOrThrow()
         val file = moveFileIfExists(fileId).getOrThrow()
         if (file.exists()) {
             CoreLogger.d(LogTag.DOWNLOAD, "File already downloaded")
-            setDownloadState(driveLink.link, DownloadState.Ready)
             return@coRunCatching
         }
         coroutineScope {
@@ -166,31 +166,46 @@ class DownloadFileLegacy @Inject constructor(
                 )
             }.getOrThrow()
         if (verifyDownloadedFile.isAllowed(userId = driveLink.userId)) {
+            val checksumVerified = driveLink.link.activeRevisionChecksumVerified
             verifyDownloadedFile(
                 driveLink = driveLink,
-                revisionId = revisionId,
                 file = downloadedFile,
             )
                 .onSuccess {
                     integrityMetricsNotifier.downloadVerifier(
                         fileSize = downloadedFile.length().bytes,
                         isSuccess = true,
+                        checksumVerified = checksumVerified,
                     )
                 }
                 .recoverCatching { error ->
                     if (error is ContentDigestVerifierException.Mismatch) {
                         val fileSize = downloadedFile.length().bytes
-                        downloadedFile.delete()
                         integrityMetricsNotifier.downloadVerifier(
                             fileSize = fileSize,
                             isSuccess = false,
+                            checksumVerified = checksumVerified,
                             throwable = error,
                         )
-                        throw error
+                        if (checksumVerified) {
+                            downloadedFile.delete()
+                            throw error
+                        } else {
+                            reportError(
+                                tag = LogTag.DOWNLOAD,
+                                error = error,
+                                message = buildString {
+                                    append("ContentDigestVerifierException.Mismatch ChecksumVerified=false, ")
+                                    append("revisionId=${revisionId}, ")
+                                    append("creationTime=${driveLink.link.creationTime.captureTime(dateTimeFormatter)}")
+                                },
+                            )
+                        }
                     } else {
                         integrityMetricsNotifier.downloadVerifier(
                             fileSize = downloadedFile.length().bytes,
                             isSuccess = true,
+                            checksumVerified = checksumVerified,
                             throwable = error,
                         )
                     }
@@ -199,9 +214,6 @@ class DownloadFileLegacy @Inject constructor(
         }
     }.onFailure { error ->
         reportError(LogTag.DOWNLOAD, error, "Cannot download file ${fileId.id} (legacy)")
-        setDownloadState(fileId, DownloadState.Error)
-    }.onSuccess {
-        setDownloadState(fileId, DownloadState.Ready)
     }
 
     private suspend fun List<Block>.blocksForDownload(

@@ -23,9 +23,9 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import me.proton.core.drive.drivelink.photo.data.paging.AlbumPhotoListingRemoteMediatorFactoryImpl
-import me.proton.core.drive.drivelink.photo.data.paging.PhotoListingRemoteMediatorFactoryImpl
+import me.proton.core.drive.drivelink.photo.data.repository.PhotoListingAnchorRepositoryImpl
 import me.proton.core.drive.drivelink.photo.domain.paging.AlbumPhotoListingRemoteMediatorFactory
-import me.proton.core.drive.drivelink.photo.domain.paging.PhotoListingRemoteMediatorFactory
+import me.proton.core.drive.drivelink.photo.domain.repository.PhotoListingAnchorRepository
 import javax.inject.Singleton
 
 @Module
@@ -34,13 +34,13 @@ interface DriveLinkPhotoBindModule {
 
     @Binds
     @Singleton
-    fun bindsPhotoListingRemoteMediatorFactory(
-        impl: PhotoListingRemoteMediatorFactoryImpl,
-    ): PhotoListingRemoteMediatorFactory
-
-    @Binds
-    @Singleton
     fun bindsAlbumPhotoListingRemoteMediatorFactory(
         impl: AlbumPhotoListingRemoteMediatorFactoryImpl,
     ): AlbumPhotoListingRemoteMediatorFactory
+
+    @Binds
+    @Singleton
+    fun bindsPhotoListingAnchorRepository(
+        impl: PhotoListingAnchorRepositoryImpl,
+    ): PhotoListingAnchorRepository
 }

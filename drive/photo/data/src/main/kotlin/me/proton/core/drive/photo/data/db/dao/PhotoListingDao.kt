@@ -156,36 +156,6 @@ abstract class PhotoListingDao : BaseDao<PhotoListingEntity>() {
     @Query("DELETE FROM PhotoListingEntity WHERE user_id = :userId AND volume_id = :volumeId")
     abstract suspend fun deleteAll(userId: UserId, volumeId: String)
 
-    @Query(
-        """
-            WITH listing AS (
-                SELECT
-                    ple.user_id,
-                    ple.volume_id,
-                    ple.share_id,
-                    ple.id,
-                    ple.capture_time as capture_time,
-                    ple.hash,
-                    ple.content_hash,
-                    lfpe.revision_id,
-                    lfpe.thumbnail_id_default
-                FROM PhotoListingEntity ple
-                LEFT JOIN LinkFilePropertiesEntity lfpe ON
-                    ple.user_id = lfpe.file_user_id AND
-                    ple.share_id = lfpe.file_share_id AND
-                    ple.id = lfpe.file_link_id
-            )
-            SELECT capture_time, typeof(capture_time) as type FROM listing
-            WHERE capture_time IS NULL OR typeof(capture_time) != 'integer'
-        """
-    )
-    abstract suspend fun getInvalidCaptureTimes(): List<InvalidCaptureTime>
-
-    data class InvalidCaptureTime(
-        val captureTime: Long?,
-        val type: String,
-    )
-
     private companion object{
         const val PHOTO_LISTING_WITH_FILE_PROPERTIES_ASC = """
             SELECT 

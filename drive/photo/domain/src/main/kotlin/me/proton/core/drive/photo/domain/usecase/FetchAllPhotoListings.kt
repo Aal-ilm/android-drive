@@ -20,7 +20,9 @@ package me.proton.core.drive.photo.domain.usecase
 
 import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.link.domain.entity.FileId
+import me.proton.core.drive.link.domain.entity.PhotoTag
 import me.proton.core.drive.photo.domain.entity.PhotoListing
+import me.proton.core.drive.share.domain.entity.ShareId
 import me.proton.core.drive.volume.domain.entity.VolumeId
 
 interface FetchAllPhotoListings {
@@ -30,4 +32,13 @@ interface FetchAllPhotoListings {
         pageSize: Int,
         linkId: FileId? = null,
     ): Result<List<PhotoListing>>
+
+    suspend operator fun invoke(
+        userId: UserId,
+        volumeId: VolumeId,
+        shareId: ShareId,
+        tag: PhotoTag? = null,
+        initialPageKey: String? = null,
+        postPageProcess: suspend (nextKey: String?, isComplete: Boolean, pageCount: Int) -> Unit,
+    ): Result<Unit>
 }

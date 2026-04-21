@@ -24,5 +24,6 @@ import me.proton.core.drive.base.presentation.state.ListContentState
 data class UserInvitationViewState(
     val title: String,
     @DrawableRes val navigationIconResId: Int,
+    val navigationContentDescription: String?,
     val listContentState: ListContentState,
 )

@@ -274,4 +274,34 @@ internal sealed class FileUploadFlow {
             ).enqueue()
     }
 
+    class RecreateFileSdk(
+        private val workManager: WorkManager,
+        private val userId: UserId,
+        override val uploadFileLinkId: Long,
+        private val networkType: NetworkType,
+        private val cleanupWorkers: CleanupWorkers,
+    ) : FileUploadFlow() {
+
+        override suspend fun enqueueWork(uploadTags: List<String>, uriString: String) = workManager
+            .beginWith(
+                CreateNewFileSdkWorker.getWorkRequest(
+                    userId = userId,
+                    uploadFileLinkId = uploadFileLinkId,
+                    uriString = uriString,
+                    networkType = networkType,
+                    tags = uploadTags,
+                )
+            ).then(
+                UploadFileSdkWorker.getWorkRequest(
+                    userId = userId,
+                    uploadFileLinkId = uploadFileLinkId,
+                    uriString = uriString,
+                    networkType = networkType,
+                    tags = uploadTags,
+                )
+            ).then(
+                cleanupWorkers(userId, uploadFileLinkId, uploadTags)
+            ).enqueue()
+    }
+
 }

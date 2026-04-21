@@ -29,6 +29,7 @@ data class MoveFileViewState(
     val title: String,
     val isTitleEncrypted: Boolean = false,
     val navigationIconResId: Int = 0,
+    val navigationContentDescription: String? = null,
     val driveLinks: List<String> = emptyList(),
     val topBarActions: Flow<Set<Action>> = emptyFlow(),
 )

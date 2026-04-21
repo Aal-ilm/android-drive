@@ -34,6 +34,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.presentation.common.Action
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
 import me.proton.core.drive.drivelink.domain.entity.DriveLink
@@ -99,7 +101,9 @@ open class SelectionViewModel(
         super.onCleared()
         selectionId.value?.let { selectionId ->
             CoroutineScope(Dispatchers.Main).launch {
-                deselectLinks(selectionId)
+                deselectLinks(selectionId).onFailure { error ->
+                    error.log(VIEW_MODEL, "Failed to deselect links")
+                }
             }
         }
     }
@@ -113,7 +117,13 @@ open class SelectionViewModel(
     protected open fun onTopAppBarNavigation(nonSelectedBlock: () -> Unit): () -> Unit = {
         Unit.also {
             if (selected.value.isNotEmpty()) {
-                selectionId.value?.let { viewModelScope.launch { deselectLinks(it) } }
+                selectionId.value?.let { selectionId ->
+                    viewModelScope.launch {
+                        deselectLinks(selectionId).onFailure { error ->
+                            error.log(VIEW_MODEL, "Failed to deselect links")
+                        }
+                    }
+                }
             } else {
                 nonSelectedBlock()
             }
@@ -152,16 +162,25 @@ open class SelectionViewModel(
 
     protected open fun addSelected(linkIds: List<LinkId>) {
         viewModelScope.launch {
-            selectionId.value?.let { selectionId ->
-                selectLinks(selectionId, linkIds)
-            } ?: setSelectionId(selectLinks(linkIds).getOrNull())
+            val id = selectionId.value
+            if (id != null) {
+                selectLinks(id, linkIds).onFailure { error ->
+                    error.log(VIEW_MODEL, "Failed to select links")
+                }
+            } else {
+                setSelectionId(selectLinks(linkIds).onFailure { error ->
+                    error.log(VIEW_MODEL, "Failed to select links")
+                }.getOrNull())
+            }
         }
     }
 
     protected open fun removeSelected(linkIds: List<LinkId>) {
         viewModelScope.launch {
             selectionId.value?.let { selectionId ->
-                deselectLinks(selectionId, linkIds)
+                deselectLinks(selectionId, linkIds).onFailure { error ->
+                    error.log(VIEW_MODEL, "Failed to deselect links")
+                }
             }
         }
     }
@@ -169,7 +188,11 @@ open class SelectionViewModel(
     protected fun removeAllSelected() {
         if (selected.value.isNotEmpty()) {
             viewModelScope.launch {
-                selectionId.value?.let { selectionId -> deselectLinks(selectionId) }
+                selectionId.value?.let { selectionId ->
+                    deselectLinks(selectionId).onFailure { error ->
+                        error.log(VIEW_MODEL, "Failed to deselect links")
+                    }
+                }
             }
         }
     }

@@ -26,7 +26,6 @@ android {
 driveModule(
     compose = true,
     i18n = true,
-    kapt = true,
     showkase = true,
     buildConfig = true,
 ) {

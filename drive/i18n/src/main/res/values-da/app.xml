@@ -148,6 +148,16 @@
   <string name="notification_content_text_backup_paused_background_restrictions">Sikkerhedskopiering kan ikke køre i baggrunden</string>
   <string name="notification_content_text_backup_preparing">Klargøring til sikkerhedskopiering</string>
   <string name="notification_content_text_backup_failed_migration">Migration i gang, opdater din applikation</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">Downloader %1$d fil</item>
+    <item quantity="other">Downloader %1$d filer</item>
+  </plurals>
   <string name="notification_content_title_download_complete">Download fuldført</string>
   <string name="notification_content_title_forced_sign_out">Log ind</string>
   <string name="notification_content_text_forced_sign_out">Beklager afbrydelsen! Vi havde et problem med synkroniseringen - log venligst ind igen, så skal vi nok få det hele til at køre som smurt.</string>

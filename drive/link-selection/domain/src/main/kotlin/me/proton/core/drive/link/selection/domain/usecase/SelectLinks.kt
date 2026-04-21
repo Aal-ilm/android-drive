@@ -17,6 +17,7 @@
  */
 package me.proton.core.drive.link.selection.domain.usecase
 
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.link.domain.entity.LinkId
 import me.proton.core.drive.link.selection.domain.entity.SelectionId
 import me.proton.core.drive.link.selection.domain.repository.LinkSelectionRepository
@@ -25,9 +26,11 @@ import javax.inject.Inject
 class SelectLinks @Inject constructor(
     private val repository: LinkSelectionRepository
 ) {
-    suspend operator fun invoke(linkIds: List<LinkId>) =
-        repository.insertSelection(linkIds)
+    suspend operator fun invoke(linkIds: List<LinkId>) = coRunCatching {
+        repository.insertSelection(linkIds).getOrThrow()
+    }
 
-    suspend operator fun invoke(selectionId: SelectionId, linkIds: List<LinkId>) =
+    suspend operator fun invoke(selectionId: SelectionId, linkIds: List<LinkId>) = coRunCatching {
         repository.insertOrIgnoreSelection(selectionId, linkIds)
+    }
 }

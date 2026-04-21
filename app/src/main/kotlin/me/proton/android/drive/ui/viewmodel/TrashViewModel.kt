@@ -41,12 +41,14 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.effect.TrashEffect
 import me.proton.android.drive.ui.navigation.Screen
 import me.proton.android.drive.ui.screen.EmptyTrashIconState
 import me.proton.core.domain.arch.mapSuccessValueOrNull
 import me.proton.core.drive.base.domain.entity.TimestampMs
 import me.proton.core.drive.base.domain.extension.flowOf
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.presentation.common.getThemeDrawableId
 import me.proton.core.drive.base.presentation.effect.ListEffect
@@ -112,6 +114,7 @@ class TrashViewModel @Inject constructor(
         titleResId = I18N.string.common_trash,
         sorting = Sorting.DEFAULT,
         navigationIconResId = CorePresentation.drawable.ic_arrow_back,
+        navigationContentDescription = appContext.getString(I18N.string.common_back_action),
         drawerGesturesEnabled = true,
         listContentState = listContentState.value,
         listContentAppendingState = listContentAppendingState.value,
@@ -247,6 +250,13 @@ class TrashViewModel @Inject constructor(
     }
 
     private fun onToggleLayout() {
-        viewModelScope.launch { toggleLayoutType(userId = userId, currentLayoutType = layoutType.value) }
+        viewModelScope.launch {
+            toggleLayoutType(
+                userId = userId,
+                currentLayoutType = layoutType.value,
+            ).onFailure { error ->
+                error.log(VIEW_MODEL, "Failed to toggle layout $layoutType")
+            }
+        }
     }
 }

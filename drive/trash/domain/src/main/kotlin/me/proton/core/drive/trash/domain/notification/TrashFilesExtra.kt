@@ -28,4 +28,5 @@ data class TrashFilesExtra(
     val volumeId: VolumeId,
     val links: List<LinkId>,
     val exception: Exception? = null,
+    val allowsUndo: Boolean = true,
 ) : Serializable

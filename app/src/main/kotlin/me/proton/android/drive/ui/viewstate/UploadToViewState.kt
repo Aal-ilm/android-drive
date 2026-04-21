@@ -28,5 +28,6 @@ data class UploadToViewState(
     val isTitleEncrypted: Boolean = false,
     val isBackHandlerEnabled: Boolean = false,
     val navigationIconResId: Int = 0,
+    val navigationContentDescription: String? = null,
     val fileNames: List<String> = emptyList(),
 )

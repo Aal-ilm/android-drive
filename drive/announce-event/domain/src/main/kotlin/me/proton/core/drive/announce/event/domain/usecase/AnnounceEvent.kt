@@ -23,7 +23,6 @@ import me.proton.core.drive.announce.event.domain.handler.EventHandler
 import me.proton.core.drive.base.domain.log.LogTag.ANNOUNCE_EVENT
 import me.proton.core.drive.base.domain.usecase.ReportError
 import me.proton.core.drive.base.domain.util.coRunCatching
-import me.proton.core.util.kotlin.CoreLogger
 import javax.inject.Inject
 
 class AnnounceEvent @Inject constructor(

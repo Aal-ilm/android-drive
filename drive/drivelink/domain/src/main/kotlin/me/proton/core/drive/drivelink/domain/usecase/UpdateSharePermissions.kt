@@ -26,39 +26,64 @@ import me.proton.core.drive.drivelink.domain.entity.DriveLink
 import me.proton.core.drive.link.domain.extension.shareId
 import me.proton.core.drive.link.domain.extension.userId
 import me.proton.core.drive.linknode.domain.usecase.GetLinkAncestors
-import me.proton.core.drive.share.crypto.domain.usecase.GetPhotoShare
 import me.proton.core.drive.share.domain.entity.Share
 import me.proton.core.drive.share.domain.usecase.GetHighestSharePermissions
-import me.proton.core.drive.share.domain.usecase.GetMainShare
 import me.proton.core.drive.share.domain.usecase.GetShare
+import me.proton.core.drive.volume.domain.entity.Volume
+import me.proton.core.drive.volume.domain.usecase.GetActiveVolumes
 import javax.inject.Inject
 
 class UpdateSharePermissions @Inject constructor(
-    private val getMainShare: GetMainShare,
-    private val getPhotoShare: GetPhotoShare,
+    private val getActiveVolumes: GetActiveVolumes,
     private val getShare: GetShare,
     private val getLinkAncestors: GetLinkAncestors,
     private val getHighestSharePermissions: GetHighestSharePermissions,
 ) {
     suspend operator fun invoke(driveLink: DriveLink): DriveLink {
-        val share = getShare(driveLink.shareId).toResult().getOrNull(SHARING, "Cannot find share")
+        val share = getShare(driveLink.shareId).toResult()
+            .getOrNull(SHARING, "Cannot find share")
             ?: return driveLink
         val sharePermissions = when (share.type) {
-            Share.Type.STANDARD -> getPermissions(share, driveLink)
+            Share.Type.STANDARD -> {
+                getPermissions(
+                    share = share,
+                    driveLink = driveLink,
+                    volumes = getActiveVolumes(driveLink.userId)
+                        .toResult()
+                        .getOrNull(SHARING, "Cannot get main share")
+                        .orEmpty(),
+                )
+            }
             else -> Permissions.owner
         }
-        return when (driveLink) {
-            is DriveLink.Folder -> driveLink.copy(sharePermissions = sharePermissions)
-            is DriveLink.File -> driveLink.copy(sharePermissions = sharePermissions)
-            is DriveLink.Album -> driveLink.copy(sharePermissions = sharePermissions)
+        return driveLink.copySharePermission(sharePermissions)
+    }
+
+    suspend operator fun invoke(driveLinks: List<DriveLink>): List<DriveLink> {
+        val volumesByUserId = driveLinks.map { it.userId }.distinct()
+            .associateWith { userId -> getActiveVolumes(userId).toResult().getOrNull(SHARING, "Cannot get volumes") }
+        val shareByShareId = driveLinks.map { it.shareId }.distinct()
+            .associateWith { shareId -> getShare(shareId).toResult().getOrNull(SHARING, "Cannot find share") }
+        return driveLinks.map { driveLink ->
+            shareByShareId[driveLink.shareId]?.let{ share ->
+                val sharePermissions = when (share.type) {
+                    Share.Type.STANDARD -> getPermissions(
+                        share = share,
+                        driveLink = driveLink,
+                        volumes = volumesByUserId[driveLink.userId].orEmpty(),
+                    )
+                    else -> Permissions.owner
+                }
+                driveLink.copySharePermission(sharePermissions)
+            } ?: driveLink
         }
     }
 
     private suspend fun getPermissions(
         share: Share,
         driveLink: DriveLink,
-    ): Permissions = checkMainShare(share, driveLink)
-        ?: checkPhotoShare(share, driveLink)
+        volumes: List<Volume>,
+    ): Permissions = share.checkVolumes(volumes)
         ?: checkLinks(driveLink)
 
     private suspend fun checkLinks(driveLink: DriveLink): Permissions =
@@ -68,23 +93,17 @@ class UpdateSharePermissions @Inject constructor(
             getHighestSharePermissions(shareIds).getOrNull(SHARING, "Cannot get share permissions")
         } ?: Permissions.viewer
 
-    private suspend fun checkPhotoShare(
-        share: Share,
-        driveLink: DriveLink
-    ): Permissions? {
-        val photoShare = getPhotoShare(driveLink.userId)
-            .toResult()
-            .getOrNull(SHARING, "Cannot get photo share")
-        return Permissions.owner.takeIf { photoShare?.volumeId == share.volumeId }
-    }
+    private fun Share.checkPhotoShare(photoShare: Share?): Permissions? =
+        Permissions.owner.takeIf { volumeId == photoShare?.volumeId }
 
-    private suspend fun checkMainShare(
-        share: Share,
-        driveLink: DriveLink
-    ): Permissions? {
-        val mainShare = getMainShare(driveLink.userId)
-            .toResult()
-            .getOrNull(SHARING, "Cannot get main share")
-        return Permissions.owner.takeIf { mainShare?.volumeId == share.volumeId }
+    private fun Share.checkVolumes(volumes: List<Volume>): Permissions? =
+        Permissions.owner.takeIf { volumes.any { volume -> volume.id == volumeId } }
+
+    private fun DriveLink.copySharePermission(
+        sharePermissions: Permissions
+    ): DriveLink = when (this) {
+        is DriveLink.Folder -> this.copy(sharePermissions = sharePermissions)
+        is DriveLink.File -> this.copy(sharePermissions = sharePermissions)
+        is DriveLink.Album -> this.copy(sharePermissions = sharePermissions)
     }
 }

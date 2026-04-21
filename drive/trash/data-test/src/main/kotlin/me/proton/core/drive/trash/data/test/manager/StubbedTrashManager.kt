@@ -39,7 +39,6 @@ import me.proton.core.drive.link.domain.entity.LinkId
 import me.proton.core.drive.link.domain.repository.LinkRepository
 import me.proton.core.drive.linktrash.domain.repository.LinkTrashRepository
 import me.proton.core.drive.share.domain.usecase.GetMainShare
-import me.proton.core.drive.share.domain.usecase.GetShare
 import me.proton.core.drive.trash.data.manager.worker.EmptyTrashSuccessWorker
 import me.proton.core.drive.trash.data.manager.worker.EmptyTrashWorker
 import me.proton.core.drive.trash.data.manager.worker.PermanentlyDeleteFileNodesWorker
@@ -48,6 +47,7 @@ import me.proton.core.drive.trash.data.manager.worker.TrashFileNodesWorker
 import me.proton.core.drive.trash.domain.TrashManager
 import me.proton.core.drive.trash.domain.repository.DriveTrashRepository
 import me.proton.core.drive.volume.domain.entity.VolumeId
+import me.proton.core.drive.volume.domain.usecase.GetActiveVolumes
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -60,8 +60,8 @@ class StubbedTrashManager @Inject constructor(
     private val updateEventAction: UpdateEventAction,
     private val linkRepository: LinkRepository,
     private val handleOnDeleteEvent: HandleOnDeleteEvent,
-    private val getShare: GetShare,
     private val getMainShare: GetMainShare,
+    private val getActiveVolumes: GetActiveVolumes,
 ) : TrashManager {
     private val context by lazy { ApplicationProvider.getApplicationContext<Context>() }
 
@@ -85,6 +85,7 @@ class StubbedTrashManager @Inject constructor(
                     updateEventAction = updateEventAction,
                     linkRepository = linkRepository,
                     handleOnDeleteEvent = handleOnDeleteEvent,
+                    getActiveVolumes = getActiveVolumes,
                     appContext = appContext,
                     params = workerParameters,
                 )

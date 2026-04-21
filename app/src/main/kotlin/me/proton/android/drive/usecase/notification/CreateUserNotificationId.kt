@@ -21,7 +21,6 @@ package me.proton.android.drive.usecase.notification
 import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.announce.event.domain.entity.Event
 import me.proton.core.drive.notification.data.extension.createNotificationId
-import me.proton.core.drive.notification.data.extension.tag
 import me.proton.core.drive.notification.domain.entity.Channel
 import me.proton.core.drive.notification.domain.entity.TaglessNotificationId
 import me.proton.core.drive.notification.domain.extension.createTaglessNotificationId
@@ -32,9 +31,7 @@ class CreateUserNotificationId @Inject constructor() {
         userId: UserId,
         event: Event,
     ) = when (event) {
-        is Event.Download -> event.createNotificationId(userId).copy(
-            tag = "${event.tag}_${event.downloadId}"
-        )
+        is Event.Download -> event.createNotificationId(userId)
 
         // Foreground service in worker do not use tag
         is Event.TransferData -> TaglessNotificationId.UPLOAD.createTaglessNotificationId(

@@ -158,6 +158,18 @@
   <string name="notification_content_text_backup_paused_background_restrictions">Рэзервовае капіяванне не можа выконвацца ў фоне</string>
   <string name="notification_content_text_backup_preparing">Падрыхтоўка да рэзервовай копіі</string>
   <string name="notification_content_text_backup_failed_migration">Адбываецца перанос. Абнаўленне праграмы</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">Спампоўванне %1$d файла</item>
+    <item quantity="few">Спампоўванне %1$d файлаў</item>
+    <item quantity="many">Спампоўванне %1$d файлаў</item>
+    <item quantity="other">Спампоўванне %1$d файлаў</item>
+  </plurals>
   <string name="notification_content_title_download_complete">Спампоўванне завершана</string>
   <string name="notification_content_title_forced_sign_out">Увайдзіце</string>
   <string name="notification_content_text_forced_sign_out">Прабачце за нязручнасці! Адбылася праблема з сінхранізацыяй. Увайдзіце яшчэ раз і працэс адновіцца ў звычайным рэжыме.</string>

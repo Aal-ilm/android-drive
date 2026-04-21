@@ -306,6 +306,7 @@ private fun TopAppBar(
     if (isLandscape) {
         BaseTopAppBar(
             navigationIcon = painterResource((closeAction as Action.Icon).iconResId),
+            navigationContentDescription = stringResource((closeAction as Action.Icon).contentDescriptionResId),
             onNavigationIcon = closeAction.onAction,
             title = "",
             backgroundColor = backgroundColor,

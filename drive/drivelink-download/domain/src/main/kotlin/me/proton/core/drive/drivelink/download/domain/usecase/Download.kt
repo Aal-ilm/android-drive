@@ -18,6 +18,7 @@
 package me.proton.core.drive.drivelink.download.domain.usecase
 
 import me.proton.core.drive.base.domain.extension.toResult
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.drivelink.domain.entity.DriveLink
 import me.proton.core.drive.drivelink.domain.usecase.GetDriveLink
 import me.proton.core.drive.drivelink.download.domain.entity.DownloadFileLink
@@ -35,23 +36,25 @@ class Download @Inject constructor(
         linkId: LinkId,
         retryable: Boolean = true,
         networkType: NetworkType = NetworkType.ANY,
-    ) =
+    ) = coRunCatching {
         getDriveLink(linkId).toResult().getOrThrow().let { driveLink ->
-            invoke(driveLink, retryable, networkType)
+            invoke(driveLink, retryable, networkType).getOrThrow()
         }
+    }
 
     suspend operator fun invoke(
         driveLink: DriveLink,
         retryable: Boolean = true,
         networkType: NetworkType = NetworkType.ANY,
-    ) =
-        invoke(listOf(driveLink), retryable, networkType)
+    ) = coRunCatching {
+        invoke(listOf(driveLink), retryable, networkType).getOrThrow()
+    }
 
     suspend operator fun invoke(
         driveLinks: List<DriveLink>,
         retryable: Boolean = true,
         networkType: NetworkType = NetworkType.ANY,
-    ) =
+    ) = coRunCatching {
         driveLinks.forEach { driveLink ->
             val priority = if (retryable) {
                 DownloadFileLink.AVAILABLE_OFFLINE_PRIORITY
@@ -60,4 +63,5 @@ class Download @Inject constructor(
             }
             downloadManager.download(driveLink, priority, retryable, networkType)
         }
+    }
 }

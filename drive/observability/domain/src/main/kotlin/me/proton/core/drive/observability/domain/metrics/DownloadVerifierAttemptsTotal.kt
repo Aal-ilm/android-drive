@@ -21,13 +21,14 @@ package me.proton.core.drive.observability.domain.metrics
 import io.swagger.v3.oas.annotations.media.Schema
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
+import me.proton.core.drive.observability.domain.metrics.common.BooleanStatus
 import me.proton.core.observability.domain.entity.SchemaId
 
 typealias StringBuckets = String
 
 @Serializable
 @Schema(description = "Drive file download verification")
-@SchemaId("https://proton.me/drive_download_verifier_attempts_total_v1.schema.json")
+@SchemaId("https://proton.me/drive_download_verifier_attempts_total_v2.schema.json")
 data class DownloadVerifierAttemptsTotal(
     override val Labels: LabelsData,
     @Required override val Value: Long = 1,
@@ -37,6 +38,7 @@ data class DownloadVerifierAttemptsTotal(
     data class LabelsData(
         val result: ResultStatusWithSkipped,
         val fileSize: StringBuckets,
+        val checksumVerified: BooleanStatus,
     )
 
     @Suppress("EnumEntryName")

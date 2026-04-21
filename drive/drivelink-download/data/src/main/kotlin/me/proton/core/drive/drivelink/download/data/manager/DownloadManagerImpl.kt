@@ -53,6 +53,7 @@ import me.proton.core.drive.drivelink.domain.entity.DriveLink
 import me.proton.core.drive.drivelink.domain.usecase.GetDriveLink
 import me.proton.core.drive.drivelink.download.data.extension.observeNetworkTypes
 import me.proton.core.drive.drivelink.download.data.manager.DownloadManagerImpl.DownloadFileTask
+import me.proton.core.drive.drivelink.download.data.worker.DownloadEventWorker
 import me.proton.core.drive.drivelink.download.data.worker.FileDownloaderWorker
 import me.proton.core.drive.drivelink.download.domain.entity.DownloadFileLink
 import me.proton.core.drive.drivelink.download.domain.entity.DownloadParentLink
@@ -186,12 +187,12 @@ class DownloadManagerImpl @Inject constructor(
         downloadParentLinkRepository.deleteAll(userId)
     }
 
-    override fun getProgressFlow(driveLink: DriveLink.File): Flow<Percentage>? =
+    override fun getProgressFlow(fileId: FileId): Flow<Percentage>? =
         runningTasks
-            .takeIf { runningTasks -> runningTasks.value.firstOrNull(driveLink.id) != null }
+            .takeIf { runningTasks -> runningTasks.value.firstOrNull(fileId) != null }
             ?.transform { runningTasks ->
                 runningTasks
-                    .firstOrNull(driveLink.id)
+                    .firstOrNull(fileId)
                     ?.let { task -> emitAll(task.progress) }
             }
 
@@ -209,6 +210,7 @@ class DownloadManagerImpl @Inject constructor(
                     pipelineId = pipelineId,
                     downloadFileLink = downloadFileLink,
                     progress = MutableStateFlow(Percentage(0)),
+                    setDownloadState = setDownloadState,
                     downloadFile = downloadFile,
                 ).also { task ->
                     runningTasks.value += task
@@ -249,6 +251,7 @@ class DownloadManagerImpl @Inject constructor(
 
     private suspend fun taskCompleteSuccessfully(task: DownloadFileTask) {
         CoreLogger.d(task.downloadFileLink.fileId.logTag, "taskCompleted pipelineId=${task.pipelineId}")
+        setDownloadState(task.downloadFileLink.fileId, DownloadState.Ready)
         downloadSdkManager.close(
             volumeId = task.downloadFileLink.volumeId,
             fileId = task.downloadFileLink.fileId,
@@ -261,6 +264,7 @@ class DownloadManagerImpl @Inject constructor(
 
     private suspend fun taskCompletedWithException(task: DownloadFileTask, throwable: Throwable) {
         throwable.log(task.downloadFileLink.fileId.logTag, "taskCompleted pipelineId=${task.pipelineId}")
+        setDownloadState(task.downloadFileLink.fileId, DownloadState.Error)
         downloadErrorManager.post(task.downloadFileLink.fileId, throwable)
         downloadMetricsNotifier(task.downloadFileLink.fileId, false, throwable)
         runningTasks.value -= task
@@ -304,6 +308,7 @@ class DownloadManagerImpl @Inject constructor(
             )
     }.also {
         startFileDownloaderWorker(userId)
+        startDownloadEventWorker(userId)
     }
 
     private suspend fun downloadFile(
@@ -653,6 +658,14 @@ class DownloadManagerImpl @Inject constructor(
         ).await()
     }
 
+    private suspend fun startDownloadEventWorker(userId: UserId) {
+        workManager.enqueueUniqueWork(
+            DownloadEventWorker.UNIQUE_WORK_NAME,
+            ExistingWorkPolicy.KEEP,
+            DownloadEventWorker.getWorkRequest(userId)
+        ).await()
+    }
+
     private fun observeIdleFiles(userId: UserId, coroutineContext: CoroutineContext) {
         downloadFileRepository
             .getCountFlow(userId, DownloadFileLink.State.IDLE)
@@ -755,9 +768,12 @@ class DownloadManagerImpl @Inject constructor(
         val pipelineId: Long,
         val downloadFileLink: DownloadFileLink,
         val progress: MutableStateFlow<Percentage>,
+        val setDownloadState: SetDownloadState,
         val downloadFile: DownloadFile,
     ) : PipelineManager.Task {
         override suspend fun invoke(isCancelled: () -> Boolean) {
+            setDownloadState(downloadFileLink.fileId, DownloadState.Downloading)
+
             downloadFile(
                 volumeId = downloadFileLink.volumeId,
                 fileId = downloadFileLink.fileId,

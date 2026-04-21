@@ -133,7 +133,7 @@ class TagsMigrationInitializer : Initializer<Unit> {
                                     driveLink = getDriveLink(fileId).toResult().getOrThrow(),
                                     retryable = true,
                                     networkType = NetworkType.UNMETERED,
-                                )
+                                ).getOrThrow()
                             }.onFailure { error ->
                                 error.log(
                                     PHOTO,

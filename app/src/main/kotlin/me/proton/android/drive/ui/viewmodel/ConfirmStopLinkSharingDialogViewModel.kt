@@ -28,10 +28,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.navigation.Screen
 import me.proton.android.drive.ui.viewevent.ConfirmStopSharingViewEvent
 import me.proton.android.drive.ui.viewstate.ConfirmStopSharingViewState
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.extension.require
@@ -96,7 +96,7 @@ class ConfirmStopLinkSharingDialogViewModel @Inject constructor(
             confirm()
         }.onFailure { error ->
             errorMessage.emit(context.getString(I18N.string.description_files_stop_sharing_action_error))
-            error.log(VIEW_MODEL)
+            error.log(VIEW_MODEL, "Failed to delete share url for ${linkId.id}")
         }
     }
 }

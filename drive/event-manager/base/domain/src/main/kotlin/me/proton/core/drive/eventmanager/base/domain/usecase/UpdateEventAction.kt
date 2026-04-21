@@ -22,7 +22,7 @@ import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.share.domain.entity.ShareId
 import me.proton.core.drive.volume.domain.entity.VolumeId
 import me.proton.core.drive.volume.domain.extension.volumeId
-import me.proton.drive.sdk.Uid
+import me.proton.drive.sdk.entity.NodeUid
 
 interface UpdateEventAction {
 
@@ -41,12 +41,12 @@ interface UpdateEventAction {
 
     suspend operator fun <T> invoke(
         userId: UserId,
-        nodeUid: String,
+        nodeUid: NodeUid,
         overrideMinimumFetchInterval: Boolean = true,
         block: suspend () -> T
     ): T = invoke(
         userId = userId,
-        volumeId = Uid.volumeId(nodeUid),
+        volumeId = nodeUid.volumeId,
         overrideMinimumFetchInterval = overrideMinimumFetchInterval,
         block = block,
     )

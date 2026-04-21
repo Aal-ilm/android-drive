@@ -128,6 +128,7 @@ fun TopAppBar(
         navigationIcon = if (viewState.navigationIconResId != 0) {
             painterResource(id = viewState.navigationIconResId)
         } else null,
+        navigationContentDescription = viewState.navigationContentDescription,
         notificationDotVisible = viewState.notificationDotVisible,
         onNavigationIcon = viewEvent.onTopAppBarNavigation,
         title = viewState.title ?: stringResource(id = viewState.titleResId),

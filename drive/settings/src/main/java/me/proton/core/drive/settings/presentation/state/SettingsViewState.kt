@@ -25,6 +25,7 @@ import kotlin.time.Duration
 
 data class SettingsViewState(
     @DrawableRes val navigationIcon: Int,
+    val navigationContentDescription: String?,
     @StringRes val appNameResId: Int,
     val appVersion: String,
     val legalLinks: List<LegalLink>,

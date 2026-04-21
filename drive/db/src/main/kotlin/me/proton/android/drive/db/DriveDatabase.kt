@@ -75,8 +75,7 @@ import me.proton.core.drive.drivelink.paged.data.db.DriveLinkPagedDatabase
 import me.proton.core.drive.drivelink.paged.data.db.entity.DriveLinkRemoteKeyEntity
 import me.proton.core.drive.drivelink.photo.data.db.DriveLinkPhotoDatabase
 import me.proton.core.drive.drivelink.photo.data.db.entity.AlbumPhotoListingRemoteKeyEntity
-import me.proton.core.drive.drivelink.photo.data.db.entity.PhotoListingRemoteKeyEntity
-import me.proton.core.drive.drivelink.photo.data.db.entity.TaggedPhotoListingRemoteKeyEntity
+import me.proton.core.drive.drivelink.photo.data.db.entity.PhotoListingAnchorEntity
 import me.proton.core.drive.drivelink.selection.data.db.DriveLinkSelectionDatabase
 import me.proton.core.drive.drivelink.shared.data.db.DriveLinkSharedDatabase
 import me.proton.core.drive.drivelink.shared.data.db.entity.SharedRemoteKeyEntity
@@ -319,8 +318,7 @@ import me.proton.core.notification.data.local.db.NotificationDatabase as CoreNot
         RelatedPhotoEntity::class,
         TaggedPhotoListingEntity::class,
         TaggedRelatedPhotoEntity::class,
-        PhotoListingRemoteKeyEntity::class,
-        TaggedPhotoListingRemoteKeyEntity::class,
+        PhotoListingAnchorEntity::class,
         AlbumRelatedPhotoEntity::class,
         AlbumPhotoListingEntity::class,
         AlbumListingEntity::class,
@@ -447,7 +445,7 @@ abstract class DriveDatabase :
     DocumentScannerDatabase {
 
     companion object {
-        const val VERSION = 102
+        const val VERSION = 104
 
         private val migrations = listOf(
             DriveDatabaseMigrations.MIGRATION_1_2,
@@ -551,6 +549,8 @@ abstract class DriveDatabase :
             DriveDatabaseMigrations.MIGRATION_99_100,
             DriveDatabaseMigrations.MIGRATION_100_101,
             DriveDatabaseMigrations.MIGRATION_101_102,
+            DriveDatabaseMigrations.MIGRATION_102_103,
+            DriveDatabaseMigrations.MIGRATION_103_104,
         )
 
         fun buildDatabase(context: Context): DriveDatabase =

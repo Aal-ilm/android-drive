@@ -52,12 +52,14 @@ sealed class FeatureFlagId(open val userId: UserId, open val id: String) {
         const val DRIVE_ANDROID_SDK_THUMBNAIL_MAIN = "DriveAndroidSDKThumbnailMain"
         const val DRIVE_ANDROID_SDK_THUMBNAIL_PHOTO = "DriveAndroidSDKThumbnailPhoto"
         const val DRIVE_ANDROID_SDK_NODE_OPERATION = "DriveAndroidSDKNodeOperation"
+        const val DRIVE_ANDROID_SDK_TRASH = "DriveAndroidSDKTrash"
         const val DRIVE_ANDROID_UPLOAD_FOLDER = "DriveAndroidUploadFolder"
         const val DRIVE_ANDROID_PHOTO_LISTING_WITH_FILE_PROPERTIES = "DriveAndroidPhotoListingWithFileProperties"
         const val DRIVE_ANDROID_DOCUMENT_SCANNER = "DriveAndroidDocumentScanner"
         const val DRIVE_DOWNLOAD_VERIFICATION_DISABLED = "DriveDownloadVerificationDisabled"
         const val DRIVE_UPLOAD_VERIFICATION_DISABLED = "DriveUploadVerificationDisabled"
         const val DRIVE_ANDROID_SPRING_SALE_2026 = "DriveAndroidSpringSale2026"
+        const val DRIVE_ANDROID_DOWNLOAD_FILE_PROGRESS_NOTIFICATION_DISABLED = "DriveAndroidDownloadFileProgressNotificationDisabled"
 
         internal var developments : List<String> = listOf(
         )
@@ -87,11 +89,13 @@ sealed class FeatureFlagId(open val userId: UserId, open val id: String) {
         fun driveAndroidSDKThumbnailMain(userId: UserId) = Unleash(userId, DRIVE_ANDROID_SDK_THUMBNAIL_MAIN)
         fun driveAndroidSDKThumbnailPhoto(userId: UserId) = Unleash(userId, DRIVE_ANDROID_SDK_THUMBNAIL_PHOTO)
         fun driveAndroidSDKNodeOperation(userId: UserId) = Unleash(userId, DRIVE_ANDROID_SDK_NODE_OPERATION)
+        fun driveAndroidSDKTrash(userId: UserId) = Unleash(userId, DRIVE_ANDROID_SDK_TRASH)
         fun driveAndroidUploadFolder(userId: UserId) = Unleash(userId, DRIVE_ANDROID_UPLOAD_FOLDER)
         fun driveAndroidPhotoListingWithFileProperties(userId: UserId) = Unleash(userId, DRIVE_ANDROID_PHOTO_LISTING_WITH_FILE_PROPERTIES)
         fun driveAndroidDocumentScanner(userId: UserId) = Unleash(userId, DRIVE_ANDROID_DOCUMENT_SCANNER)
         fun driveDownloadVerificationDisabled(userId: UserId) = Unleash(userId, DRIVE_DOWNLOAD_VERIFICATION_DISABLED)
         fun driveUploadVerificationDisabled(userId: UserId) = Unleash(userId, DRIVE_UPLOAD_VERIFICATION_DISABLED)
         fun driveAndroidSpringSale2026(userId: UserId) = Unleash(userId, DRIVE_ANDROID_SPRING_SALE_2026)
+        fun driveAndroidDownloadFileProgressNotificationDisabled(userId: UserId) = Unleash(userId, DRIVE_ANDROID_DOWNLOAD_FILE_PROGRESS_NOTIFICATION_DISABLED)
     }
 }

@@ -195,6 +195,7 @@ fun AlbumsTab(
                 navigationIcon = if (viewState.navigationIconResId != 0) {
                     painterResource(id = viewState.navigationIconResId)
                 } else null,
+                navigationContentDescription = viewState.navigationContentDescription,
                 onNavigationIcon = viewEvent.onTopAppBarNavigation,
                 title = defaultTitle,
                 notificationDotVisible = false,
@@ -269,7 +270,7 @@ fun PhotosTab(
 
     viewModel.HandleHomeEffect(homeScaffoldState)
 
-    val photos = rememberFlowWithLifecycle(flow = viewModel.driveLinks)
+    val photos = rememberFlowWithLifecycle(flow = viewModel.photoItems)
     val listEffect = rememberFlowWithLifecycle(flow = viewModel.listEffect)
 
     LaunchedEffect(viewModel, LocalContext.current) {
@@ -339,6 +340,7 @@ private fun PhotosTab(
                 navigationIcon = if (viewState.navigationIconResId != 0) {
                     painterResource(id = viewState.navigationIconResId)
                 } else null,
+                navigationContentDescription = viewState.navigationContentDescription,
                 onNavigationIcon = viewEvent.onTopAppBarNavigation,
                 title = if (viewState.inMultiselect) {
                     { Title(viewState.title, false) }

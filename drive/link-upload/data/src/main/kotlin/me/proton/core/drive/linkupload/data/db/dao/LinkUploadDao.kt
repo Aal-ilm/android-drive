@@ -194,16 +194,34 @@ abstract class LinkUploadDao : BaseDao<LinkUploadEntity>() {
     abstract fun getAllWithUriByPriority(userId: UserId, states: Set<UploadState>, count: Int): Flow<List<LinkUploadEntity>>
 
     @Query("""
-        SELECT * FROM LinkUploadEntity
+        SELECT LinkUploadEntity.* FROM LinkUploadEntity
+        INNER JOIN ShareEntity ON
+            LinkUploadEntity.share_id = ShareEntity.id AND
+            LinkUploadEntity.user_id = ShareEntity.user_id
         WHERE
-            user_id = :userId AND
-            volume_id = :volumeId AND
-            uri IS NOT NULL AND uri != "" AND
-            state IN (:states)
-        ORDER BY priority ASC, id ASC
+            LinkUploadEntity.user_id = :userId AND
+            ShareEntity.type = :type AND
+            LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" AND
+            LinkUploadEntity.state IN (:states)
+        ORDER BY LinkUploadEntity.priority ASC, LinkUploadEntity.id ASC
         LIMIT :count
     """)
-    abstract fun getAllWithUriByPriority(userId: UserId, volumeId: String, states: Set<UploadState>, count: Int): Flow<List<LinkUploadEntity>>
+    abstract fun getAllWithUriByPriorityWithShareType(userId: UserId, states: Set<UploadState>, type: Long, count: Int): Flow<List<LinkUploadEntity>>
+
+    @Query("""
+        SELECT LinkUploadEntity.* FROM LinkUploadEntity
+        LEFT JOIN ShareEntity ON
+            LinkUploadEntity.share_id = ShareEntity.id AND
+            LinkUploadEntity.user_id = ShareEntity.user_id
+        WHERE
+            LinkUploadEntity.user_id = :userId AND
+            COALESCE(ShareEntity.type, 0) != :type AND
+            LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" AND
+            LinkUploadEntity.state IN (:states)
+        ORDER BY LinkUploadEntity.priority ASC, LinkUploadEntity.id ASC
+        LIMIT :count
+    """)
+    abstract fun getAllWithUriByPriorityWithoutShareType(userId: UserId, states: Set<UploadState>, type: Long, count: Int): Flow<List<LinkUploadEntity>>
 
     @Query("""
         SELECT COUNT(*) FROM (SELECT * FROM LinkUploadEntity WHERE user_id = :userId)
@@ -268,27 +286,74 @@ abstract class LinkUploadDao : BaseDao<LinkUploadEntity>() {
         """
         SELECT
             COUNT(*) AS ${Column.TOTAL},
-            COUNT(CASE WHEN uri IS NOT NULL AND uri != "" THEN 1 ELSE NULL END) AS ${Column.TOTAL_WITH_URI},
+            COUNT(CASE WHEN LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" THEN 1 ELSE NULL END) AS ${Column.TOTAL_WITH_URI},
             COUNT(
-                CASE WHEN uri IS NOT NULL AND uri != "" AND priority > :userPriority THEN 1 ELSE NULL END
+                CASE WHEN LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" AND LinkUploadEntity.priority > :userPriority THEN 1 ELSE NULL END
             ) AS ${Column.TOTAL_WITH_URI_NON_USER_PRIORITY},
             COUNT(
-                CASE WHEN uri IS NOT NULL AND uri != "" AND state = "UNPROCESSED"
+                CASE WHEN LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" AND LinkUploadEntity.state = "UNPROCESSED"
                     THEN 1
                     ELSE NULL
                 END
             ) AS ${Column.TOTAL_UNPROCESSED_WITH_URI},
             COUNT(
-                CASE WHEN uri IS NOT NULL AND uri != "" AND state = "UNPROCESSED" AND priority > :userPriority
+                CASE WHEN LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" AND LinkUploadEntity.state = "UNPROCESSED" AND LinkUploadEntity.priority > :userPriority
                     THEN 1
                     ELSE NULL
                 END
             ) AS ${Column.TOTAL_UNPROCESSED_WITH_URI_NON_USER_PRIORITY},
-            COUNT(CASE WHEN should_announce_event = 1 THEN 1 ELSE NULL END) AS ${Column.TOTAL_WITH_ANNOUNCE}
-        FROM LinkUploadEntity WHERE user_id = :userId AND volume_id = :volumeId
+            COUNT(CASE WHEN LinkUploadEntity.should_announce_event = 1 THEN 1 ELSE NULL END) AS ${Column.TOTAL_WITH_ANNOUNCE}
+        FROM LinkUploadEntity
+        INNER JOIN ShareEntity ON
+            LinkUploadEntity.share_id = ShareEntity.id AND
+            LinkUploadEntity.user_id = ShareEntity.user_id
+        WHERE
+            LinkUploadEntity.user_id = :userId AND
+            ShareEntity.type = :type
     """
     )
-    abstract fun getUploadCount(userId: UserId, volumeId: String, userPriority: Long): Flow<LinkUploadCountEntity>
+    abstract fun getUploadCountWithShareType(
+        userId: UserId,
+        type: Long,
+        userPriority: Long
+    ): Flow<LinkUploadCountEntity>
+
+    @Transaction
+    @Query(
+        """
+        SELECT
+            COUNT(*) AS ${Column.TOTAL},
+            COUNT(CASE WHEN LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" THEN 1 ELSE NULL END) AS ${Column.TOTAL_WITH_URI},
+            COUNT(
+                CASE WHEN LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" AND LinkUploadEntity.priority > :userPriority THEN 1 ELSE NULL END
+            ) AS ${Column.TOTAL_WITH_URI_NON_USER_PRIORITY},
+            COUNT(
+                CASE WHEN LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" AND LinkUploadEntity.state = "UNPROCESSED"
+                    THEN 1
+                    ELSE NULL
+                END
+            ) AS ${Column.TOTAL_UNPROCESSED_WITH_URI},
+            COUNT(
+                CASE WHEN LinkUploadEntity.uri IS NOT NULL AND LinkUploadEntity.uri != "" AND LinkUploadEntity.state = "UNPROCESSED" AND LinkUploadEntity.priority > :userPriority
+                    THEN 1
+                    ELSE NULL
+                END
+            ) AS ${Column.TOTAL_UNPROCESSED_WITH_URI_NON_USER_PRIORITY},
+            COUNT(CASE WHEN LinkUploadEntity.should_announce_event = 1 THEN 1 ELSE NULL END) AS ${Column.TOTAL_WITH_ANNOUNCE}
+        FROM LinkUploadEntity
+        LEFT JOIN ShareEntity ON
+            LinkUploadEntity.share_id = ShareEntity.id AND
+            LinkUploadEntity.user_id = ShareEntity.user_id
+        WHERE
+            LinkUploadEntity.user_id = :userId AND
+            COALESCE(ShareEntity.type, 0) != :type
+    """
+    )
+    abstract fun getUploadCountWithoutShareType(
+        userId: UserId,
+        type: Long,
+        userPriority: Long
+    ): Flow<LinkUploadCountEntity>
 
     @Query(
         """

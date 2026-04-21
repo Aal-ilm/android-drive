@@ -31,6 +31,7 @@ import me.proton.core.compose.theme.ProtonTheme
 import me.proton.core.drive.base.presentation.component.TopAppBar
 import me.proton.core.accountmanager.presentation.R as AccountPresentation
 import me.proton.core.presentation.R as CorePresentation
+import me.proton.core.drive.i18n.R as I18N
 
 
 @Composable
@@ -44,6 +45,7 @@ fun AccountSettingsScreen(
     Column(modifier = modifier.fillMaxSize()) {
         TopAppBar(
             navigationIcon = painterResource(id = CorePresentation.drawable.ic_arrow_back),
+            navigationContentDescription = stringResource(I18N.string.common_back_action),
             onNavigationIcon = navigateBack,
             title = stringResource(AccountPresentation.string.account_settings_header),
             modifier = Modifier.statusBarsPadding()

@@ -28,10 +28,12 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import me.proton.android.drive.extension.log
 import me.proton.android.drive.receiver.NotificationBroadcastReceiver.Companion.ACTION_CANCEL_ALL
+import me.proton.android.drive.receiver.NotificationBroadcastReceiver.Companion.ACTION_CANCEL_ALL_DOWNLOADS
 import me.proton.android.drive.receiver.NotificationBroadcastReceiver.Companion.ACTION_DELETE
 import me.proton.core.drive.base.domain.extension.resultValueOrNull
 import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.drive.base.domain.util.coRunCatching
+import me.proton.core.drive.drivelink.download.domain.usecase.CancelAllDownload
 import me.proton.core.drive.notification.domain.entity.NotificationId
 import me.proton.core.drive.notification.domain.usecase.RemoveNotification
 import me.proton.core.drive.share.domain.usecase.GetMainShare
@@ -46,6 +48,7 @@ class NotificationActionWorker @AssistedInject constructor(
     private val removeNotification: RemoveNotification,
     private val getMainShare: GetMainShare,
     private val cancelAllUpload: CancelAllUpload,
+    private val cancelAllDownload: CancelAllDownload,
 ) : CoroutineWorker(appContext, params) {
     private val action = inputData.getString(KEY_ACTION)
     private val notificationIdString = inputData.getString(KEY_NOTIFICATION_ID)
@@ -79,6 +82,7 @@ class NotificationActionWorker @AssistedInject constructor(
                         shareId,
                     )
                 }
+                ACTION_CANCEL_ALL_DOWNLOADS -> cancelAllDownload(notificationId.channel.userId)
                 else -> RuntimeException("Unknown action '$action'").log(LogTag.NOTIFICATION)
             }
         }

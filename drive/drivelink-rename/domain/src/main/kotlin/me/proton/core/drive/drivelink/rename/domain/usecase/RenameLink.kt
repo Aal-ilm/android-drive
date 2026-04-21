@@ -29,7 +29,6 @@ import me.proton.core.drive.link.domain.extension.userId
 import me.proton.core.drive.link.domain.usecase.GetLink
 import me.proton.core.drive.link.domain.usecase.ValidateLinkName
 import me.proton.core.drive.share.domain.usecase.GetShare
-import me.proton.drive.sdk.Uid
 import javax.inject.Inject
 
 class RenameLink @Inject constructor(

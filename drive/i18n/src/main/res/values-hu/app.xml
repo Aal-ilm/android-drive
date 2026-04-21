@@ -148,6 +148,16 @@
   <string name="notification_content_text_backup_paused_background_restrictions">A biztonsági mentés nem fut a háttérben</string>
   <string name="notification_content_text_backup_preparing">Felkészülés a biztonsági mentésre</string>
   <string name="notification_content_text_backup_failed_migration">Folyamatban van az áthelyezés, frissítse az alkalmazást</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">Downloading %1$d file</item>
+    <item quantity="other">Downloading %1$d files</item>
+  </plurals>
   <string name="notification_content_title_download_complete">A letöltés befejeződött</string>
   <string name="notification_content_title_forced_sign_out">Jelentkezzen be</string>
   <string name="notification_content_text_forced_sign_out">Sajnos hiba történt a szinkronizálás közben - lépjen be újra, hogy minden ismét gördülékenyen működhessen.</string>

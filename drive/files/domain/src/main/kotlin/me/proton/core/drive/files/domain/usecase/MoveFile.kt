@@ -19,6 +19,7 @@
 package me.proton.core.drive.files.domain.usecase
 
 import me.proton.core.domain.entity.UserId
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.files.domain.operation.FileOperationManager
 import me.proton.core.drive.link.domain.entity.LinkId
 import me.proton.core.drive.link.domain.entity.ParentId
@@ -27,7 +28,12 @@ import javax.inject.Inject
 class MoveFile @Inject constructor(
     private val fileOperationManager: FileOperationManager
 ) {
-    suspend operator fun invoke(userId: UserId, linkIds: List<LinkId>, parentId: ParentId, allowUndo: Boolean = true) {
+    suspend operator fun invoke(
+        userId: UserId,
+        linkIds: List<LinkId>,
+        parentId: ParentId,
+        allowUndo: Boolean = true,
+    ) = coRunCatching {
         fileOperationManager.changeParent(userId, linkIds, parentId, allowUndo)
     }
 }

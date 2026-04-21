@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.options.Option
 import me.proton.android.drive.ui.options.filter
 import me.proton.android.drive.ui.options.filterPermissions
@@ -41,6 +42,7 @@ import me.proton.android.drive.ui.options.filterShareMember
 import me.proton.core.domain.arch.mapSuccessValueOrNull
 import me.proton.core.drive.base.domain.entity.Permissions
 import me.proton.core.drive.base.domain.extension.mapWithPrevious
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.presentation.component.RunAction
 import me.proton.core.drive.base.presentation.extension.require
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
@@ -115,7 +117,9 @@ class AlbumOptionsViewModel @Inject constructor(
                 when (option) {
                     is Option.OfflineToggle -> option.build(runAction) { driveLink ->
                         viewModelScope.launch {
-                            toggleOffline(driveLink)
+                            toggleOffline(driveLink).onFailure { error ->
+                                error.log(VIEW_MODEL, "Failed to toggle offline for ${driveLink.id.id}")
+                            }
                         }
                     }
                     is Option.ShareViaInvitations -> option.build(runAction, navigateToShareViaInvitations)

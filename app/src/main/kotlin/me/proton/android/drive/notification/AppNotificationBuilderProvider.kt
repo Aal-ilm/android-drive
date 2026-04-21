@@ -21,6 +21,7 @@ package me.proton.android.drive.notification
 import androidx.core.app.NotificationCompat
 import me.proton.android.drive.usecase.notification.BackupNotificationBuilder
 import me.proton.android.drive.usecase.notification.DownloadNotificationBuilder
+import me.proton.android.drive.usecase.notification.DownloadFileProgressNotificationBuilder
 import me.proton.android.drive.usecase.notification.ForcedSignOutNotificationBuilder
 import me.proton.android.drive.usecase.notification.NoSpaceLeftOnDeviceNotificationBuilder
 import me.proton.android.drive.usecase.notification.StorageFullNotificationBuilder
@@ -35,6 +36,7 @@ class AppNotificationBuilderProvider @Inject constructor(
     private val storageFullBuilder: StorageFullNotificationBuilder,
     private val uploadNotificationBuilder: UploadNotificationBuilder,
     private val downloadNotificationBuilder: DownloadNotificationBuilder,
+    private val downloadFileProgressNotificationBuilder: DownloadFileProgressNotificationBuilder,
     private val forcedSignOutNotificationBuilder: ForcedSignOutNotificationBuilder,
     private val noSpaceLeftOnDeviceNotificationBuilder: NoSpaceLeftOnDeviceNotificationBuilder,
     private val backupNotificationBuilder: BackupNotificationBuilder,
@@ -55,10 +57,15 @@ class AppNotificationBuilderProvider @Inject constructor(
                 notificationId = requireIsInstance(notificationId),
                 events = events as List<Event.Upload>,
             )
-        events.size == 1 && events.first() is Event.Download ->
+        events.isNotEmpty() && events.all { it is Event.Download } ->
             downloadNotificationBuilder(
                 notificationId = requireIsInstance(notificationId),
-                event = events.first() as Event.Download,
+                events = events as List<Event.Download>,
+            )
+        events.isNotEmpty() && events.all { it is Event.DownloadFileProgress } ->
+            downloadFileProgressNotificationBuilder(
+                notificationId = requireIsInstance(notificationId),
+                events = events as List<Event.DownloadFileProgress>,
             )
         events.size == 1 && events.first() is Event.ForcedSignOut ->
             forcedSignOutNotificationBuilder(

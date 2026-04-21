@@ -29,7 +29,9 @@
     <string name="common_type">Type</string>
     <string name="common_yes">Yes</string>
     <string name="common_download">Download</string>
+    <string name="common_downloaded">Downloaded</string>
     <string name="common_downloading">Downloading</string>
+    <string name="common_waiting_for_download">Waiting for download</string>
     <string name="common_link">Link</string>
     <string name="common_password">Password</string>
     <string name="common_retry">Retry</string>
@@ -79,6 +81,8 @@
     <string name="common_tag_photo_action">Scan photo for tags</string>
     <string name="common_save_as_action">Save as</string>
     <string name="common_open_action">Open</string>
+    <string name="common_back_action">Back</string>
+    <string name="common_open_side_menu_action">Open side menu</string>
     <!-- endregion -->
     <!-- region Common file types -->
     <string name="common_type_audio">Audio</string>

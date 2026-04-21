@@ -93,6 +93,7 @@ fun LinkSettings(
         BackHandler { viewEvent.onBackPressed() }
         TopAppBar(
             navigationIcon = painterResource(id = CorePresentation.drawable.ic_arrow_back),
+            navigationContentDescription = stringResource(I18N.string.common_back_action),
             onNavigationIcon = viewEvent.onBackPressed,
             title = stringResource(id = I18N.string.shared_link_settings),
             modifier = Modifier.statusBarsPadding(),

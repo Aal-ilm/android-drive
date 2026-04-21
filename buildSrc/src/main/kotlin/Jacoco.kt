@@ -70,17 +70,17 @@ fun Project.configureJacoco(flavor: String = "", srcFolder: String = "kotlin") {
             "**/ch/protonmail/**",
         )
 
-        val debugTree = fileTree("$buildDir/tmp/kotlin-classes/$taskName") { exclude(fileFilter) }
+        val debugTree = fileTree(project.layout.buildDirectory.dir("tmp/kotlin-classes/$taskName").get().asFile) { exclude(fileFilter) }
         val mainSrc = "$projectDir/src/main/$srcFolder"
 
         sourceDirectories.setFrom(mainSrc)
         classDirectories.setFrom(debugTree)
-        executionData.setFrom(fileTree(buildDir) { include(listOf("**/*.exec", "**/*.ec")) })
+        executionData.setFrom(fileTree(project.layout.buildDirectory.get().asFile) { include(listOf("**/*.exec", "**/*.ec")) })
     }.dependsOn("test${taskName.capitalize(Locale.ENGLISH)}UnitTest")
 
     tasks.register("coverageReport") {
         dependsOn("jacocoTestReport")
-        val reportFile = project.file("$buildDir/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+        val reportFile = project.layout.buildDirectory.file("reports/jacoco/jacocoTestReport/jacocoTestReport.xml").get().asFile
         inputs.files(reportFile).withPropertyName("reportFile")
         onlyIf { reportFile.exists() }
         doLast {
@@ -111,8 +111,8 @@ fun Project.configureJacoco(flavor: String = "", srcFolder: String = "kotlin") {
 
     tasks.register<Exec>("coberturaCoverageReport") {
         dependsOn("coverageReport")
-        val jacocoFile = project.file("$buildDir/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
-        val coberturaFile = project.file( "$buildDir/reports/cobertura-coverage.xml")
+        val jacocoFile = project.layout.buildDirectory.file("reports/jacoco/jacocoTestReport/jacocoTestReport.xml").get().asFile
+        val coberturaFile = project.layout.buildDirectory.file("reports/cobertura-coverage.xml").get().asFile
         inputs.file(jacocoFile).withPropertyName("jacocoFile")
         outputs.file(coberturaFile)
         workingDir = File(rootDir, "buildSrc")

@@ -183,6 +183,7 @@ class SettingsViewModel @Inject constructor(
     ) {  debugSettings, themeStyle, enabled, autoLockDuration, isBackupEnabled, dynamicHomeTab, userLogKillSwitch ->
         SettingsViewState(
             navigationIcon = CorePresentation.drawable.ic_arrow_back,
+            navigationContentDescription = context.getString(I18N.string.common_back_action),
             appNameResId = I18N.string.app_name,
             appVersion = BuildConfig.VERSION_NAME,
             legalLinks = listOf(
@@ -225,7 +226,12 @@ class SettingsViewModel @Inject constructor(
         },
         onThemeStyleChanged = { newStyle ->
             viewModelScope.launch {
-                updateThemeStyle(userId, enumValues<ThemeStyle>().first { style -> style.resId == newStyle })
+                updateThemeStyle(
+                    userId = userId,
+                    themeStyle = enumValues<ThemeStyle>().first { style -> style.resId == newStyle }
+                ).onFailure { error ->
+                    error.log(VIEW_MODEL, "Failed to update theme style")
+                }
             }
         },
         onAccountSettings = {

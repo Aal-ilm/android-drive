@@ -135,6 +135,7 @@ sealed class Link : BaseLink {
         val tags: List<PhotoTag> = emptyList(),
         val albumsInfos: List<AlbumInfo> = emptyList(),
         val relatedPhotoIds: List<FileId> = emptyList(),
+        val activeRevisionChecksumVerified: Boolean = false,
     ) : Link(), me.proton.core.drive.link.domain.entity.File {
         override val isFavorite: Boolean
             get() = PhotoTag.Favorites in tags

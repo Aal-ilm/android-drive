@@ -24,6 +24,7 @@ import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.eventmanager.base.domain.usecase.UpdateEventAction
 import me.proton.core.drive.link.domain.usecase.ValidateLinkName
 import me.proton.drive.sdk.entity.FolderNode
+import me.proton.drive.sdk.entity.NodeUid
 import javax.inject.Inject
 
 class CreateFolderSdk @Inject constructor(
@@ -33,7 +34,7 @@ class CreateFolderSdk @Inject constructor(
 ) {
     suspend operator fun invoke(
         userId: UserId,
-        parentFolderUid: String,
+        parentFolderUid: NodeUid,
         folderName: String,
         shouldUpdateEvent: Boolean = true,
     ): Result<Pair<String, FolderNode>> = coRunCatching {

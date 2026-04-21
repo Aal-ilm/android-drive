@@ -39,6 +39,7 @@ data class AlbumViewState(
     val inMultiselect: Boolean = false,
     val showActions: Boolean = true,
     @DrawableRes val navigationIconResId: Int? = null,
+    val navigationContentDescription: String? = null,
     val title: String? = null,
     val showAddAction: Boolean = true,
     val addActionEnabled: Boolean = true,

@@ -26,12 +26,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.lock.domain.extension.autoLockDefaultDuration
 import me.proton.android.drive.lock.domain.usecase.GetAutoLockDuration
 import me.proton.android.drive.lock.domain.usecase.UpdateAutoLockDuration
 import me.proton.android.drive.ui.viewevent.AutoLockDurationsViewEvent
 import me.proton.android.drive.ui.viewstate.AutoLockDurationsViewState
 import me.proton.core.compose.component.bottomsheet.RunAction
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import javax.inject.Inject
 import kotlin.time.Duration
@@ -62,7 +64,9 @@ class AutoLockDurationsViewModel @Inject constructor(
         override val onDuration: (Duration) -> Unit = { duration ->
             runAction {
                 viewModelScope.launch {
-                    updateAutoLockDuration(duration)
+                    updateAutoLockDuration(duration).onFailure { error ->
+                        error.log(VIEW_MODEL, "Cannot update auto lock duration")
+                    }
                     dismiss()
                 }
             }

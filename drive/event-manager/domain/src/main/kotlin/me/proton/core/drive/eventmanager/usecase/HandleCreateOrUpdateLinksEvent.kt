@@ -19,6 +19,7 @@
 package me.proton.core.drive.eventmanager.usecase
 
 import me.proton.core.drive.base.domain.extension.flowOf
+import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.extension.nullIfNotFound
 import me.proton.core.drive.base.domain.extension.toResult
 import me.proton.core.drive.base.domain.log.LogTag.EVENTS
@@ -64,7 +65,7 @@ class HandleCreateOrUpdateLinksEvent @Inject constructor(
                     updateOfflineContent(
                         modifiedStateOrParentLinks.ids +
                                 links.filterIsInstance<Link.Album>().map { link -> link.id }
-                    )
+                    ).getOrNull(EVENTS, "Failed to update online content")
                     insertOrDeletePhotoListings(volumeId, links.filterVolumePhotoListings(photoShare?.rootFolderId))
                     insertOrDeleteAlbumPhotoListings(volumeId, links.filterIsInstance<Link.File>())
                     insertOrDeleteAlbumListings(volumeId, links.filterIsInstance<Link.Album>())

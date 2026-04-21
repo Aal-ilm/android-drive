@@ -34,12 +34,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.effect.HomeEffect
 import me.proton.android.drive.ui.effect.HomeTabViewModel
 import me.proton.android.drive.ui.viewevent.ComputersViewEvent
 import me.proton.android.drive.ui.viewstate.ComputersViewState
 import me.proton.core.domain.arch.DataResult
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.data.extension.logDefaultMessage
 import me.proton.core.drive.base.domain.entity.CryptoProperty
 import me.proton.core.drive.base.domain.entity.TimestampMs
@@ -48,19 +48,20 @@ import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.common.getThemeDrawableId
+import me.proton.core.drive.base.presentation.state.ListContentState
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
 import me.proton.core.drive.device.domain.entity.Device
 import me.proton.core.drive.device.domain.entity.DeviceId
 import me.proton.core.drive.device.domain.extension.name
 import me.proton.core.drive.device.domain.usecase.RefreshDevices
 import me.proton.core.drive.drivelink.device.domain.usecase.GetDecryptedDevicesSortedByName
-import me.proton.core.drive.base.presentation.state.ListContentState
 import me.proton.core.drive.files.domain.usecase.ToFirstItemMetricsNotifier
 import me.proton.core.drive.link.domain.entity.FolderId
 import me.proton.core.drive.messagequeue.domain.entity.BroadcastMessage
 import me.proton.core.drive.observability.domain.metrics.common.mobile.performance.PageType
 import me.proton.core.plan.presentation.compose.usecase.ShouldUpgradeStorage
 import javax.inject.Inject
+import me.proton.core.drive.base.data.extension.log as logResult
 import me.proton.core.drive.drivelink.device.presentation.R as DriveLinkDevicePresentation
 import me.proton.core.drive.i18n.R as I18N
 
@@ -107,6 +108,7 @@ class ComputersViewModel @Inject constructor(
     val initialViewState = ComputersViewState(
         title = appContext.getString(I18N.string.computers_title),
         navigationIconResId = me.proton.core.presentation.R.drawable.ic_proton_hamburger,
+        navigationContentDescription = appContext.getString(I18N.string.common_open_side_menu_action),
         notificationDotVisible = false,
         listContentState = listContentState.value,
         isRefreshEnabled = listContentState.value != ListContentState.Loading
@@ -136,7 +138,7 @@ class ComputersViewModel @Inject constructor(
             when (result) {
                 is DataResult.Processing -> listContentState.value = ListContentState.Loading
                 is DataResult.Error -> {
-                    result.log(VIEW_MODEL)
+                    result.logResult(VIEW_MODEL)
                     broadcastMessages(
                         userId = userId,
                         message = result.logDefaultMessage(

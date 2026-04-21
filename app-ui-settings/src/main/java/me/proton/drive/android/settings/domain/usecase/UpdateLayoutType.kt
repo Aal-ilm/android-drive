@@ -19,6 +19,7 @@
 package me.proton.drive.android.settings.domain.usecase
 
 import me.proton.core.domain.entity.UserId
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.drive.android.settings.domain.UiSettingsRepository
 import me.proton.drive.android.settings.domain.entity.LayoutType
 import javax.inject.Inject
@@ -26,6 +27,7 @@ import javax.inject.Inject
 class UpdateLayoutType @Inject constructor(
     private val repository: UiSettingsRepository
 ) {
-    suspend operator fun invoke(userId: UserId, layoutType: LayoutType) =
+    suspend operator fun invoke(userId: UserId, layoutType: LayoutType) = coRunCatching {
         repository.updateLayoutType(userId, layoutType)
+    }
 }

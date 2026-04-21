@@ -26,6 +26,7 @@ class TestIntegrityMetricsNotifier @Inject constructor(): IntegrityMetricsNotifi
     override suspend fun downloadVerifier(
         fileSize: Bytes,
         isSuccess: Boolean,
+        checksumVerified: Boolean,
         throwable: Throwable?
     ) {
         // do nothing

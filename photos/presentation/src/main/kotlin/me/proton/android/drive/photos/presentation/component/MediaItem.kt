@@ -54,6 +54,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.LocalImageLoader
+import coil.request.Disposable
 import com.google.accompanist.placeholder.PlaceholderHighlight
 import com.google.accompanist.placeholder.placeholder
 import com.google.accompanist.placeholder.shimmer
@@ -120,6 +121,7 @@ fun MediaItem(
                 .background(ProtonTheme.colors.backgroundSecondary),
         ) {
             val linkId = thumbnailVO?.fileId ?: link?.id
+            val rendered = remember(linkId) { booleanArrayOf(false) }
             Image(
                 modifier = Modifier
                     .fillMaxSize()
@@ -137,7 +139,8 @@ fun MediaItem(
                     )
                     .drawWithContent {
                         drawContent()
-                        if (linkId != null) {
+                        if (linkId != null && !rendered[0]) {
+                            rendered[0] = true
                             onRenderThumbnail(linkId)
                         }
                     },
@@ -381,15 +384,20 @@ private fun PhotoIcon(
     }
 }
 
-private fun DriveLink.preCachePhotoThumbnail(context: Context, imageLoader: ImageLoader) {
+private fun DriveLink.preCacheThumbnail(context: Context, imageLoader: ImageLoader, thumbnailType: ThumbnailType): Disposable? =
     (this as? DriveLink.File)
         ?.takeIf { it.mimeType.toFileTypeCategory() == FileTypeCategory.Image }
         ?.let { photoDriveLink ->
-            photoDriveLink.getThumbnailId(ThumbnailType.PHOTO)?.let {
-                photoDriveLink.thumbnailVO(ThumbnailType.PHOTO)
+            photoDriveLink.getThumbnailId(thumbnailType)?.let {
+                photoDriveLink.thumbnailVO(thumbnailType)
             }
         }?.preCache(context, imageLoader)
-}
+
+fun DriveLink.preCachePhotoThumbnail(context: Context, imageLoader: ImageLoader): Disposable? =
+    preCacheThumbnail(context, imageLoader, ThumbnailType.PHOTO)
+
+fun DriveLink.preCacheDefaultThumbnail(context: Context, imageLoader: ImageLoader): Disposable? =
+    preCacheThumbnail(context, imageLoader, ThumbnailType.DEFAULT)
 
 private val iconSize = 12.dp
 

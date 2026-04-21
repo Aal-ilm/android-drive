@@ -20,7 +20,6 @@ package me.proton.core.drive.link.domain.extension
 
 import me.proton.core.drive.link.domain.entity.Link
 import me.proton.core.drive.volume.domain.entity.VolumeId
-import me.proton.drive.sdk.Uid
 
 val Link.File.isPhoto : Boolean get() = photoCaptureTime != null
 

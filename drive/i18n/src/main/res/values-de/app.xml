@@ -148,6 +148,16 @@
   <string name="notification_content_text_backup_paused_background_restrictions">Sicherung kann nicht im Hintergrund laufen</string>
   <string name="notification_content_text_backup_preparing">Sicherung wird vorbereitet</string>
   <string name="notification_content_text_backup_failed_migration">Übernahme im Gange, aktualisiere deine Anwendung</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">%1$d Datei wird heruntergeladen</item>
+    <item quantity="other">%1$d Dateien werden heruntergeladen</item>
+  </plurals>
   <string name="notification_content_title_download_complete">Download abgeschlossen</string>
   <string name="notification_content_title_forced_sign_out">Bitte melde dich an</string>
   <string name="notification_content_text_forced_sign_out">Entschuldigung für die Unterbrechung! Wir hatten ein Problem mit der Synchronisierung - bitte logge dich erneut ein, damit alles reibungslos funktioniert.</string>

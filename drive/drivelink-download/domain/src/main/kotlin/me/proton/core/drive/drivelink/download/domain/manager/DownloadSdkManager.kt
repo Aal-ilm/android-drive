@@ -26,6 +26,7 @@ import me.proton.core.drive.base.domain.log.logId
 import me.proton.core.drive.base.domain.provider.ProtonDriveClientProvider
 import me.proton.core.drive.base.domain.provider.ProtonPhotosClientProvider
 import me.proton.core.drive.link.domain.entity.FileId
+import me.proton.core.drive.link.domain.extension.revisionUid
 import me.proton.core.drive.link.domain.extension.userId
 import me.proton.core.drive.volume.domain.entity.VolumeId
 import me.proton.core.util.kotlin.CoreLogger
@@ -33,7 +34,7 @@ import me.proton.drive.sdk.DownloadController
 import me.proton.drive.sdk.Downloader
 import me.proton.drive.sdk.ProtonDriveClient
 import me.proton.drive.sdk.ProtonPhotosClient
-import me.proton.drive.sdk.Uid
+import me.proton.drive.sdk.entity.RevisionUid
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -50,7 +51,7 @@ class DownloadSdkManager @Inject constructor(
         var controller: DownloadController? = null
     )
 
-    private val states = ConcurrentHashMap<String, DownloadState>()
+    private val states = ConcurrentHashMap<RevisionUid, DownloadState>()
 
     suspend fun enqueueFile(
         volumeId: VolumeId,
@@ -58,10 +59,9 @@ class DownloadSdkManager @Inject constructor(
         revisionId: String,
         block: suspend (ProtonDriveClient) -> Downloader
     ) {
-        val nodeRevisionUid = Uid.makeNodeRevisionUid(
-            volumeId = volumeId.id,
-            nodeId = fileId.id,
-            revisionId = revisionId
+        val nodeRevisionUid = fileId.revisionUid(
+            volumeId = volumeId,
+            revisionId = revisionId,
         )
         with(nodeRevisionUid.state()) {
             mutex.withLock {
@@ -82,10 +82,9 @@ class DownloadSdkManager @Inject constructor(
         revisionId: String,
         block: suspend (ProtonPhotosClient) -> Downloader
     ) {
-        val nodeRevisionUid = Uid.makeNodeRevisionUid(
-            volumeId = volumeId.id,
-            nodeId = fileId.id,
-            revisionId = revisionId
+        val nodeRevisionUid = fileId.revisionUid(
+            volumeId = volumeId,
+            revisionId = revisionId,
         )
         with(nodeRevisionUid.state()) {
             mutex.withLock {
@@ -106,10 +105,9 @@ class DownloadSdkManager @Inject constructor(
         revisionId: String,
         block: suspend (Downloader) -> DownloadController
     ): DownloadController {
-        val nodeRevisionUid = Uid.makeNodeRevisionUid(
-            volumeId = volumeId.id,
-            nodeId = fileId.id,
-            revisionId = revisionId
+        val nodeRevisionUid = fileId.revisionUid(
+            volumeId = volumeId,
+            revisionId = revisionId,
         )
         return with(nodeRevisionUid.state()) {
             mutex.withLock {
@@ -126,10 +124,9 @@ class DownloadSdkManager @Inject constructor(
         fileId: FileId,
         revisionId: String,
     ) {
-        val nodeRevisionUid = Uid.makeNodeRevisionUid(
-            volumeId = volumeId.id,
-            nodeId = fileId.id,
-            revisionId = revisionId
+        val nodeRevisionUid = fileId.revisionUid(
+            volumeId = volumeId,
+            revisionId = revisionId,
         )
         val state = states.remove(nodeRevisionUid) ?: return
         with(state) {
@@ -151,10 +148,9 @@ class DownloadSdkManager @Inject constructor(
         fileId: FileId,
         revisionId: String,
     ) {
-        val nodeRevisionUid = Uid.makeNodeRevisionUid(
-            volumeId = volumeId.id,
-            nodeId = fileId.id,
-            revisionId = revisionId
+        val nodeRevisionUid = fileId.revisionUid(
+            volumeId = volumeId,
+            revisionId = revisionId,
         )
         val state = states.remove(nodeRevisionUid) ?: return
         with(state) {
@@ -176,7 +172,7 @@ class DownloadSdkManager @Inject constructor(
         }
     }
 
-    private fun String.state(): DownloadState =
+    private fun RevisionUid.state(): DownloadState =
         states.computeIfAbsent(this) {
             DownloadState(mutex = Mutex())
         }

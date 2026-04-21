@@ -65,6 +65,12 @@ class ShortcutInitializer : Initializer<Unit> {
                 }
                 .onAccountRemoved {
                     updateDynamicShortcuts(emptyList())
+                        .onFailure { error ->
+                            error.log(
+                                tag = LogTag.DEFAULT,
+                                message = "Failed to clear dynamic shortcuts",
+                            )
+                        }
                 }
         }
     }

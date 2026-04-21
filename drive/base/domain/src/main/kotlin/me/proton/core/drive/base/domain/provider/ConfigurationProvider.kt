@@ -83,7 +83,6 @@ interface ConfigurationProvider {
     val backupMaxAttempts: Long get() = 5
     val backupSyncWindow: Duration get() = 1.days
     val photoExportData: Boolean get() = false
-    val checkDuplicatesPageSize: Int get() = 50
     val featureFlagFreshDuration: Duration get() = 10.minutes
     val featureFlagLegacyFreshDuration: Duration get() = 1.days
     val useVerifier: Boolean get() = true
@@ -118,15 +117,13 @@ interface ConfigurationProvider {
     val addToRemoveFromAlbumMaxApiDataSize: Int get() = 10
     val maxApiBatchDataSize: Int get() = 100
     val contentDigestsInParallel: Int get() = 10
-    val minimumPhotosImportantUpdatesInterval: Duration get() = 7.days
-    val minimumPhotoShareMigrationStatusFetchInterval: Duration get() = 10.seconds
     val savePhotoToStreamLimit: Long get() = 100
-    val photoListingsPageSize: Int get() = 25_000
     val sendPhotoTagsInCommit: Boolean get() = true
     val preferSdkForUpload: Boolean get() = true
     val preferSdkForDownload: Boolean get() = true
     val preferSdkForThumbnail: Boolean get() = true
     val preferSdkForNodeOperation: Boolean get() = false
+    val preferSdkForTrash: Boolean get() = false
     val createFolderInParallel: Int get() = 16
     val sdkQueueTimeout: Duration get() = 30.seconds
     val tabsLoadTimeout: Duration get() = 3.seconds

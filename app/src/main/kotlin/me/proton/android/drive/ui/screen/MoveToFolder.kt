@@ -111,6 +111,7 @@ fun MoveToFolder(
         Column {
             TopAppBar(
                 navigationIcon = painterResource(id = viewState.navigationIconResId),
+                navigationContentDescription = viewState.navigationContentDescription,
                 onNavigationIcon = viewEvent.onTopAppBarNavigation,
                 title = { modifier ->
                     Title(

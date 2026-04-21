@@ -20,6 +20,8 @@ package me.proton.core.drive.base.data.extension
 import android.content.Context
 import me.proton.core.drive.base.data.entity.LoggerLevel
 import me.proton.drive.sdk.OperationAbortedException
+import me.proton.drive.sdk.ProtonDriveSdkException
+import me.proton.drive.sdk.ProtonSdkError.ErrorDomain
 import me.proton.core.drive.i18n.R as I18N
 
 fun OperationAbortedException.getDefaultMessage(
@@ -31,5 +33,10 @@ fun OperationAbortedException.log(
     message: String? = null,
     level: LoggerLevel? = LoggerLevel.ERROR,
 ): OperationAbortedException = also {
-    level.log(tag, this, message)
+    val abortCause = cause
+    if (abortCause is ProtonDriveSdkException && abortCause.error?.domain == ErrorDomain.SuccessfulCancellation) {
+        LoggerLevel.DEBUG
+    } else {
+        level
+    }.log(tag, this, message)
 }

@@ -33,6 +33,7 @@ import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.data.workmanager.addTags
 import me.proton.core.drive.base.domain.api.ProtonApiCode.NOT_EXISTS
 import me.proton.core.drive.base.domain.extension.onProtonHttpException
+import me.proton.core.drive.base.domain.extension.toResult
 import me.proton.core.drive.base.domain.log.LogTag.TRASH
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.domain.util.coRunCatching
@@ -51,6 +52,7 @@ import me.proton.core.drive.trash.data.manager.worker.WorkerKeys.KEY_WORK_ID
 import me.proton.core.drive.trash.domain.notification.TrashFilesExtra
 import me.proton.core.drive.trash.domain.repository.DriveTrashRepository
 import me.proton.core.drive.volume.domain.entity.VolumeId
+import me.proton.core.drive.volume.domain.usecase.GetActiveVolumes
 import java.util.concurrent.TimeUnit
 import me.proton.core.drive.i18n.R as I18N
 
@@ -62,6 +64,7 @@ class TrashFileNodesWorker @AssistedInject constructor(
     private val updateEventAction: UpdateEventAction,
     private val linkRepository: LinkRepository,
     private val handleOnDeleteEvent: HandleOnDeleteEvent,
+    private val getActiveVolumes: GetActiveVolumes,
     @Assisted appContext: Context,
     @Assisted params: WorkerParameters,
 ) : AbstractMultiResponseCoroutineWorker(linkTrashRepository, appContext, params) {
@@ -76,6 +79,17 @@ class TrashFileNodesWorker @AssistedInject constructor(
         }
 
     override suspend fun handleSuccesses(linkIds: List<LinkId>) {
+        val activeVolumes = getActiveVolumes(userId)
+            .toResult()
+            .onFailure { error ->
+                error.log(
+                    tag = TRASH,
+                    message = "Failed getting active volumes",
+                )
+            }
+            .getOrNull()
+            ?.map { volume -> volume.id }
+            ?: emptyList()
         linkTrashRepository.insertOrUpdateTrashState(volumeId, linkIds, TrashState.TRASHED)
         broadcastMessages(
             userId = userId,
@@ -85,7 +99,12 @@ class TrashFileNodesWorker @AssistedInject constructor(
                 linkIds.size,
             ),
             type = BroadcastMessage.Type.SUCCESS,
-            extra = TrashFilesExtra(userId, volumeId, linkIds)
+            extra = TrashFilesExtra(
+                userId = userId,
+                volumeId = volumeId,
+                links = linkIds,
+                allowsUndo = volumeId in activeVolumes,
+            )
         )
     }
 

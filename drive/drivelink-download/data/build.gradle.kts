@@ -47,6 +47,7 @@ driveModule(
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.core.crypto)
     implementation(libs.core.network)
+    implementation(libs.core.presentation)
 
     testImplementation(testFixtures(project(":drive:files:presentation")))
 }

@@ -48,7 +48,7 @@
   <string name="folder_option_create_document">ドキュメントを作成</string>
   <string name="folder_option_create_spreadsheet">スプレッドシートを作成</string>
   <string name="folder_option_import_folder">フォルダをアップロードする</string>
-  <string name="folder_option_scan_document">Scan document</string>
+  <string name="folder_option_scan_document">書類をスキャン</string>
   <string name="settings_theme_system_default">システム標準</string>
   <string name="settings_theme_dark">ダーク</string>
   <string name="settings_theme_light">ライト</string>
@@ -143,6 +143,15 @@
   <string name="notification_content_text_backup_paused_background_restrictions">バックアップはバックグラウンドで実行できません</string>
   <string name="notification_content_text_backup_preparing">バックアップを準備中</string>
   <string name="notification_content_text_backup_failed_migration">移行中です。アプリを更新してください</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="other">%1$d 個のファイルをダウンロード中</item>
+  </plurals>
   <string name="notification_content_title_download_complete">ダウンロード完了</string>
   <string name="notification_content_title_forced_sign_out">ログインしてください</string>
   <string name="notification_content_text_forced_sign_out">申し訳ありません！同期中に問題が発生しました。- もう一度ログインしてください。すべてがスムーズに実行されます。</string>
@@ -193,7 +202,7 @@
   <string name="operation_open_document">ドキュメントを開く</string>
   <string name="operation_create_document">ドキュメントの作成</string>
   <string name="operation_take_picture">写真を撮らせて</string>
-  <string name="operation_scan_document">scan a document</string>
+  <string name="operation_scan_document">書類をスキャン</string>
   <!-- region Get more free storage -->
   <!--
         Variable %1$s is a quantity (formatted) of max free storage

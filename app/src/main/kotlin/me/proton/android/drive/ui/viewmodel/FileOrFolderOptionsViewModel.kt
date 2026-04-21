@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.proton.android.drive.extension.getDefaultMessage
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.photos.domain.usecase.AddPhotosToStream
 import me.proton.android.drive.photos.domain.usecase.RemovePhotosFromAlbum
 import me.proton.android.drive.photos.presentation.extension.processAddToStream
@@ -49,10 +50,8 @@ import me.proton.android.drive.usecase.LeaveShare
 import me.proton.android.drive.usecase.NotifyActivityNotFound
 import me.proton.android.drive.usecase.OpenProtonDocumentInBrowser
 import me.proton.core.domain.arch.mapSuccessValueOrNull
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.entity.Permissions
 import me.proton.core.drive.base.domain.extension.mapWithPrevious
-import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
@@ -189,7 +188,9 @@ class FileOrFolderOptionsViewModel @Inject constructor(
                     }
                     is Option.OfflineToggle -> option.build(runAction) { driveLink ->
                         viewModelScope.launch {
-                            toggleOffline(driveLink)
+                            toggleOffline(driveLink).onFailure { error ->
+                                error.log(VIEW_MODEL, "Failed to toggle offline for ${driveLink.id.id}")
+                            }
                             deselectLinks()
                         }
                     }
@@ -224,13 +225,17 @@ class FileOrFolderOptionsViewModel @Inject constructor(
                     }
                     is Option.RemoveMe -> option.build(runAction) { driveLink ->
                         viewModelScope.launch {
-                            leaveShare(driveLink)
+                            leaveShare(driveLink).onFailure { error ->
+                                error.log(VIEW_MODEL, "Failed to leave share for ${driveLink.id.id}")
+                            }
                             deselectLinks()
                         }
                     }
                     is Option.OpenInBrowser -> option.build(runAction) { driveLink ->
                         viewModelScope.launch {
-                            openProtonDocumentInBrowser(driveLink)
+                            openProtonDocumentInBrowser(driveLink).onFailure { error ->
+                                error.log(VIEW_MODEL, "Failed to open proton document in browser")
+                            }
                             deselectLinks()
                         }
                     }
@@ -259,19 +264,19 @@ class FileOrFolderOptionsViewModel @Inject constructor(
                         }
                     }
                     is Option.AddToAlbums -> option.build(runAction) { driveLink ->
-                            if (selectionId != null) {
-                                navigateToAddToAlbumsOptions(selectionId)
-                            } else {
-                                viewModelScope.launch {
-                                    selectLinks(listOf(driveLink.id))
-                                        .onFailure { error ->
-                                            error.log(VIEW_MODEL, "Failed to select links")
-                                        }
-                                        .onSuccess { selectionId ->
-                                            navigateToAddToAlbumsOptions(selectionId)
-                                        }
-                                }
+                        if (selectionId != null) {
+                            navigateToAddToAlbumsOptions(selectionId)
+                        } else {
+                            viewModelScope.launch {
+                                selectLinks(listOf(driveLink.id))
+                                    .onFailure { error ->
+                                        error.log(VIEW_MODEL, "Failed to select links")
+                                    }
+                                    .onSuccess { selectionId ->
+                                        navigateToAddToAlbumsOptions(selectionId)
+                                    }
                             }
+                        }
                     }
                     else -> throw IllegalStateException(
                         "Option ${option.javaClass.simpleName} is not found. Did you forget to add it?"
@@ -291,7 +296,9 @@ class FileOrFolderOptionsViewModel @Inject constructor(
     private fun deselectLinks() {
         viewModelScope.launch {
             if (selectionId != null) {
-                deselectLinks(selectionId)
+                deselectLinks(selectionId).onFailure { error ->
+                    error.log(VIEW_MODEL, "Failed to deselect links")
+                }
             }
         }
     }
@@ -333,7 +340,7 @@ class FileOrFolderOptionsViewModel @Inject constructor(
             albumId = requireNotNull(albumId),
             newCoverFileId = driveLink.id
         ).onFailure { error ->
-            error.log(LogTag.ALBUM, "Cannot update album cover: ${driveLink.id.id}")
+            error.log(VIEW_MODEL, "Cannot update album cover: ${driveLink.id.id}")
             broadcastMessages(
                 userId = userId,
                 message = error.getDefaultMessage(
@@ -359,7 +366,7 @@ class FileOrFolderOptionsViewModel @Inject constructor(
             photoIds = listOf(fileId),
             albumId = requireNotNull(albumId) { "album id is required to save shared photo"},
         ).onFailure { error ->
-            error.log(LogTag.ALBUM, "Cannot copy photo to stream: ${fileId.id}")
+            error.log(VIEW_MODEL, "Cannot copy photo to stream: ${fileId.id}")
             broadcastMessages(
                 userId = userId,
                 message = error.getDefaultMessage(

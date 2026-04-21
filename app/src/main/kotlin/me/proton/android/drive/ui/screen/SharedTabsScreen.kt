@@ -73,6 +73,7 @@ fun SharedTabsScreen(
             TopAppBar(
                 titleResId = viewState.titleResId,
                 navigationIconResId = viewState.navigationIconResId,
+                navigationContentDescription = viewState.navigationContentDescription,
                 onTopAppBarNavigation = viewEvent.onTopAppBarNavigation,
             )
         }
@@ -147,11 +148,13 @@ fun SharedTabs(
 private fun TopAppBar(
     @StringRes titleResId: Int,
     @DrawableRes navigationIconResId: Int,
+    navigationContentDescription: String?,
     modifier: Modifier = Modifier,
     onTopAppBarNavigation: () -> Unit,
 ) {
     BaseTopAppBar(
         navigationIcon = painterResource(id = navigationIconResId),
+        navigationContentDescription = navigationContentDescription,
         onNavigationIcon = onTopAppBarNavigation,
         title = stringResource(id = titleResId),
         modifier = modifier,

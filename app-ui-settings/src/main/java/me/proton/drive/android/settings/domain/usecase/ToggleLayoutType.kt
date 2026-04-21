@@ -19,13 +19,14 @@
 package me.proton.drive.android.settings.domain.usecase
 
 import me.proton.core.domain.entity.UserId
+import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.drive.android.settings.domain.entity.LayoutType
 import javax.inject.Inject
 
 class ToggleLayoutType @Inject constructor(
     private val updateLayoutType: UpdateLayoutType
 ) {
-    suspend operator fun invoke(userId: UserId, currentLayoutType: LayoutType) =
+    suspend operator fun invoke(userId: UserId, currentLayoutType: LayoutType) = coRunCatching {
         updateLayoutType(
             userId = userId,
             layoutType = if (currentLayoutType == LayoutType.GRID) {
@@ -33,5 +34,6 @@ class ToggleLayoutType @Inject constructor(
             } else {
                 LayoutType.GRID
             }
-        )
+        ).getOrThrow()
+    }
 }

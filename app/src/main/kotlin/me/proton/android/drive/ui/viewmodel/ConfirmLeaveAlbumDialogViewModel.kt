@@ -33,15 +33,15 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.proton.android.drive.extension.getDefaultMessage
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.photos.domain.usecase.AddPhotosToStream
 import me.proton.android.drive.photos.presentation.extension.processAddToStream
 import me.proton.android.drive.photos.presentation.viewevent.ConfirmLeaveAlbumDialogViewEvent
 import me.proton.android.drive.photos.presentation.viewstate.ConfirmLeaveAlbumDialogViewState
 import me.proton.android.drive.usecase.LeaveShare
 import me.proton.core.domain.arch.mapSuccessValueOrNull
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.extension.filterSuccessOrError
-import me.proton.core.drive.base.domain.log.LogTag
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.viewmodel.UserViewModel
@@ -107,12 +107,13 @@ class ConfirmLeaveAlbumDialogViewModel @Inject constructor(
 
     private fun leaveAlbumWithoutSaving(dismiss: () -> Unit) {
         viewModelScope.launch {
-            album.value?.let {
+            album.value?.let { album ->
                 isWithoutSavingOperationInProgress.value = true
-                leaveShare(it)
-                    .onSuccess {
-                        dismiss()
-                    }
+                leaveShare(album).onSuccess {
+                    dismiss()
+                }.onFailure { error ->
+                    error.log(VIEW_MODEL, "Failed to leave share for ${album.id.id}")
+                }
                 isWithoutSavingOperationInProgress.value = false
             }
         }
@@ -123,7 +124,7 @@ class ConfirmLeaveAlbumDialogViewModel @Inject constructor(
             album.value?.let {
                 isSavingOperationInProgress.value = true
                 addPhotosToStream(albumId).onFailure { error ->
-                    error.log(LogTag.ALBUM, "Cannot copy photo to stream: ${albumId.id}")
+                    error.log(VIEW_MODEL, "Cannot copy photo to stream: ${albumId.id}")
                     broadcastMessages(
                         userId = userId,
                         message = error.getDefaultMessage(

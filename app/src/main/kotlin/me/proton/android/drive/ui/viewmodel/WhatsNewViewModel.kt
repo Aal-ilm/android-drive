@@ -26,9 +26,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.usecase.MarkWhatsNewAsShown
 import me.proton.core.drive.base.domain.extension.flowOf
-import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.presentation.common.getThemeDrawableId
 import me.proton.core.drive.base.presentation.viewevent.WhatsNewViewEvent
@@ -69,8 +69,9 @@ class WhatsNewViewModel @Inject constructor(
 
     private fun whatsNewShown() {
         viewModelScope.launch {
-            markWhatsNewAsShown(key)
-                .getOrNull(VIEW_MODEL, "Marking whats new as shown failed for: $key")
+            markWhatsNewAsShown(key).onFailure { error ->
+                error.log(VIEW_MODEL, "Marking whats new as shown failed for: $key")
+            }
         }
     }
 

@@ -27,12 +27,12 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.proton.android.drive.R
-import me.proton.android.drive.log.DriveLogTag.DEFAULT
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.viewevent.DriveLitePopupViewEvent
 import me.proton.android.drive.ui.viewstate.SubscriptionPromoViewState
 import me.proton.android.drive.usecase.MarkSubscriptionPromoAsShown
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.extension.GiB
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.presentation.component.RunAction
 import me.proton.core.drive.base.presentation.extension.asHumanReadableString
 import me.proton.core.drive.base.presentation.extension.require
@@ -151,7 +151,7 @@ class SubscriptionPromoViewModel @Inject constructor(
         override val onDismiss = {
             viewModelScope.launch {
                 markSubscriptionPromoAsShown(userId, key).onFailure { error ->
-                    error.log(DEFAULT, "Cannot mark subscription promo as shown")
+                    error.log(VIEW_MODEL, "Cannot mark subscription promo as shown")
                 }
             }
             Unit

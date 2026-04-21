@@ -39,7 +39,6 @@ class VerifyDownloadedFile @Inject constructor(
 
     suspend operator fun invoke(
         driveLink: DriveLink.File,
-        revisionId: String,
         file: File,
     ): Result<Unit> = coRunCatching {
         verifyContentDigest(

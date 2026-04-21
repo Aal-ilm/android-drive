@@ -133,6 +133,7 @@ private fun TopAppBar(
         navigationIcon = if (viewState.navigationIconResId != 0) {
             painterResource(id = viewState.navigationIconResId)
         } else null,
+        navigationContentDescription = viewState.navigationContentDescription,
         onNavigationIcon = viewEvent.onTopAppBarNavigation,
         title = viewState.title,
     )
@@ -153,6 +154,7 @@ fun UserInvitationContentPreview() {
             viewState = UserInvitationViewState(
                 title = stringResource(I18N.string.shared_user_invitations_title, 2),
                 navigationIconResId = CorePresentation.drawable.ic_arrow_back,
+                navigationContentDescription = null,
                 listContentState = ListContentState.Content(isRefreshing = false)
             ),
             viewEvent = viewEvent,
@@ -189,6 +191,7 @@ fun UserInvitationEmptyPreview() {
             viewState = UserInvitationViewState(
                 title = stringResource(I18N.string.shared_user_invitations_title, 0),
                 navigationIconResId = CorePresentation.drawable.ic_arrow_back,
+                navigationContentDescription = null,
                 listContentState = ListContentState.Empty(
                     imageResId = getThemeDrawableId(
                         light = me.proton.core.drive.base.presentation.R.drawable.empty_shared_with_me_light,
@@ -213,6 +216,7 @@ fun UserInvitationErrorPreview() {
             viewState = UserInvitationViewState(
                 title = stringResource(I18N.string.shared_user_invitations_title, 0),
                 navigationIconResId = CorePresentation.drawable.ic_arrow_back,
+                navigationContentDescription = null,
                 listContentState = ListContentState.Error(
                     message = "error"
                 )
@@ -231,6 +235,7 @@ fun UserInvitationLoadingPreview() {
             viewState = UserInvitationViewState(
                 title = stringResource(I18N.string.shared_user_invitations_title, 0),
                 navigationIconResId = CorePresentation.drawable.ic_arrow_back,
+                navigationContentDescription = null,
                 listContentState = ListContentState.Loading,
             ),
             viewEvent = viewEvent,

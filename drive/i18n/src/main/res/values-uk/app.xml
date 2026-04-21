@@ -158,6 +158,18 @@
   <string name="notification_content_text_backup_paused_background_restrictions">Резервне копіювання не може працювати на задньому плані</string>
   <string name="notification_content_text_backup_preparing">Підготовка до резервного копіювання</string>
   <string name="notification_content_text_backup_failed_migration">Перенесення триває, оновіть свій застосунок</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">Downloading %1$d file</item>
+    <item quantity="few">Downloading %1$d files</item>
+    <item quantity="many">Downloading %1$d files</item>
+    <item quantity="other">Downloading %1$d files</item>
+  </plurals>
   <string name="notification_content_title_download_complete">Звантаження завершено</string>
   <string name="notification_content_title_forced_sign_out">Увійдіть</string>
   <string name="notification_content_text_forced_sign_out">Перепрошуємо, що перериваємо! У нас виникла проблема з синхронізацією. Увійдіть ще раз, і все працюватиме без збоїв.</string>

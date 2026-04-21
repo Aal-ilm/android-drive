@@ -24,6 +24,7 @@ import androidx.annotation.StringRes
 data class SharedTabsViewState(
     @StringRes val titleResId: Int,
     @DrawableRes val navigationIconResId: Int,
+    val navigationContentDescription: String?,
     val notificationDotVisible: Boolean,
     val tabs: List<SharedTab>,
     val selectedTab: SharedTab,

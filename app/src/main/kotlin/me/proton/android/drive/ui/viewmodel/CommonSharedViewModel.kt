@@ -39,12 +39,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.common.onClick
 import me.proton.android.drive.ui.effect.HomeEffect
 import me.proton.android.drive.ui.effect.HomeTabViewModel
 import me.proton.core.drive.base.domain.entity.TimestampMs
 import me.proton.core.drive.base.domain.extension.getOrNull
-import me.proton.core.drive.base.domain.log.LogTag.SHARING
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.presentation.effect.ListEffect
 import me.proton.core.drive.base.presentation.state.ListContentAppendingState
@@ -193,9 +194,10 @@ abstract class CommonSharedViewModel(
     private fun onRefresh() {
         viewModelScope.launch {
             _listEffect.emit(ListEffect.REFRESH)
-            val linkIds = getAllIds().getOrNull(SHARING, "Cannot get ids")
+            val linkIds = getAllIds().getOrNull(VIEW_MODEL, "Cannot get ids")
                 .orEmpty().map { it.linkId }.toSet()
-            sharedDriveLinks.refresh(linkIds).getOrNull(SHARING, "Cannot refresh drive links")
+            sharedDriveLinks.refresh(linkIds)
+                .onFailure { error -> error.log(VIEW_MODEL, "Cannot refresh drive links") }
         }
     }
 

@@ -25,6 +25,7 @@ interface IntegrityMetricsNotifier {
     suspend fun downloadVerifier(
         fileSize: Bytes,
         isSuccess: Boolean,
+        checksumVerified: Boolean,
         throwable: Throwable? = null,
     )
 }

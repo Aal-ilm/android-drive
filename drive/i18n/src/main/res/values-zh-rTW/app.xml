@@ -143,6 +143,15 @@
   <string name="notification_content_text_backup_paused_background_restrictions">備份無法於背景運作</string>
   <string name="notification_content_text_backup_preparing">正在準備備份</string>
   <string name="notification_content_text_backup_failed_migration">遷移中，請更新您的應用程式</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="other">Downloading %1$d files</item>
+  </plurals>
   <string name="notification_content_title_download_complete">下載完成</string>
   <string name="notification_content_title_forced_sign_out">請登入</string>
   <string name="notification_content_text_forced_sign_out">抱歉打斷您！出現了同步問題，請重新登入，才能流暢運作。</string>

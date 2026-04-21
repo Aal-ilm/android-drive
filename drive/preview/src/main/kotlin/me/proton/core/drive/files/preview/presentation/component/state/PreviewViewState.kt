@@ -24,6 +24,7 @@ import me.proton.core.drive.base.domain.entity.FileTypeCategory
 @Immutable
 data class PreviewViewState(
     val navigationIconResId: Int,
+    val navigationContentDescription: String?,
     val isFullscreen: Flow<Boolean>,
     val previewContentState: PreviewContentState,
     val items: List<Item>,

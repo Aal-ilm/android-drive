@@ -19,6 +19,7 @@ package me.proton.core.drive.link.data.api.entity
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import me.proton.core.drive.base.data.api.Dto.CHECKSUM_VERIFIED
 import me.proton.core.drive.base.data.api.Dto.CREATE_TIME
 import me.proton.core.drive.base.data.api.Dto.ID
 import me.proton.core.drive.base.data.api.Dto.MANIFEST_SIGNATURE
@@ -49,4 +50,6 @@ data class LinkActiveRevisionDto(
     val photo: LinkPhotoDto? = null,
     @SerialName(THUMBNAILS)
     val thumbnails: List<LinkThumbnailDto>,
+    @SerialName(CHECKSUM_VERIFIED)
+    val checksumVerified: Boolean = false,
 )

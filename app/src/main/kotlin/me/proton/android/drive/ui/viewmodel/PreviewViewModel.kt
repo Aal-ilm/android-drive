@@ -74,6 +74,7 @@ import me.proton.core.drive.base.domain.entity.TimestampS
 import me.proton.core.drive.base.domain.entity.toFileTypeCategory
 import me.proton.core.drive.base.domain.extension.bytes
 import me.proton.core.drive.base.domain.extension.filterSuccessOrError
+import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.function.pagedList
 import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
@@ -258,6 +259,7 @@ class PreviewViewModel @Inject constructor(
     private val renderFailed = MutableStateFlow<Pair<Throwable, Any>?>(null)
     val initialViewState = PreviewViewState(
         navigationIconResId = CorePresentation.drawable.ic_arrow_back,
+        navigationContentDescription = appContext.getString(I18N.string.common_back_action),
         isFullscreen = isFullscreen,
         previewContentState = PreviewContentState.Loading,
         items = emptyList(),
@@ -547,7 +549,7 @@ class PreviewViewModel @Inject constructor(
                 viewModelScope.launch {
                     openProtonDocumentInBrowser(driveLink)
                         .onFailure { error ->
-                            error.log(LogTag.DEFAULT, "Open document failed")
+                            error.log(VIEW_MODEL, "Open document failed")
                             val message = when {
                                 error is ActivityNotFoundException -> appContext.getString(I18N.string.common_error_no_browser_available)
                                 else -> error.getDefaultMessage(
@@ -651,9 +653,9 @@ class FolderContentProvider(
                             .distinctUntilChanged()
                             .mapLatest {
                                 getDecryptedDriveLinks(folderId)
-                                    .getOrNull()
+                                    .getOrNull(LogTag.DEFAULT, "Cannot decrypt drive links for ${folderId.id}")
                                     ?.filterIsInstance<DriveLink.File>()
-                                    ?: emptyList<DriveLink.File>()
+                                    ?: emptyList()
                             }
                     )
                 } ?: emit(emptyList())
@@ -726,9 +728,9 @@ class OfflineContentProvider(
             .distinctUntilChanged()
             .mapLatest {
                 getDecryptedOfflineDriveLinks(userId)
-                    .getOrNull()
+                    .getOrNull(LogTag.DEFAULT, "Cannot decrypt offline drive links")
                     ?.filterIsInstance<DriveLink.File>()
-                    ?: emptyList<DriveLink.File>()
+                    ?: emptyList()
             }
             .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
 

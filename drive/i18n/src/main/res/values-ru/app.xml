@@ -158,6 +158,18 @@
   <string name="notification_content_text_backup_paused_background_restrictions">Резервное копирование не может выполняться в фоновом режиме</string>
   <string name="notification_content_text_backup_preparing">Подготовка к созданию резервной копии</string>
   <string name="notification_content_text_backup_failed_migration">Миграция в процессе, обновите ваше приложение</string>
+  <!--
+        Variable %1$d is a quantity of files currently being downloaded
+        Example:
+            "Downloading 1 file"
+            "Downloading 3 files"
+    -->
+  <plurals name="notification_content_text_download_downloading">
+    <item quantity="one">Downloading %1$d file</item>
+    <item quantity="few">Downloading %1$d files</item>
+    <item quantity="many">Downloading %1$d files</item>
+    <item quantity="other">Downloading %1$d files</item>
+  </plurals>
   <string name="notification_content_title_download_complete">Скачивание завершено</string>
   <string name="notification_content_title_forced_sign_out">Войдите</string>
   <string name="notification_content_text_forced_sign_out">Извините за неудобства! Произошла ошибка при синхронизации — пожалуйста, войдите снова, и всё будет работать как надо.</string>

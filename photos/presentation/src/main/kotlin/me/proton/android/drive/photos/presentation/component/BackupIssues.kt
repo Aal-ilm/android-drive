@@ -77,6 +77,7 @@ fun BackupIssues(
         Column {
             TopAppBar(
                 navigationIcon = painterResource(id = CorePresentation.drawable.ic_arrow_back),
+                navigationContentDescription = stringResource(I18N.string.common_back_action),
                 onNavigationIcon = { onBack() },
                 title = stringResource(id = I18N.string.backup_issues_title),
             )

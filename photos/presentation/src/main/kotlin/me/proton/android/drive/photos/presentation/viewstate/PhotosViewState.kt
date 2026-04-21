@@ -31,6 +31,7 @@ import me.proton.core.drive.link.domain.entity.PhotoTag
 data class PhotosViewState(
     val title: String,
     @DrawableRes val navigationIconResId: Int,
+    val navigationContentDescription: String?,
     val topBarActions: Flow<Set<Action>> = emptyFlow(),
     val listContentState: ListContentState,
     val showEmptyList: Boolean?,

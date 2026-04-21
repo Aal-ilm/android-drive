@@ -24,7 +24,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.withIndex
 import me.proton.core.domain.entity.UserId
-import me.proton.core.drive.base.domain.entity.NodeUid
 import me.proton.core.drive.base.domain.log.LogTag.THUMBNAIL
 import me.proton.core.drive.base.domain.provider.ProtonDriveClientProvider
 import me.proton.core.drive.base.domain.provider.ProtonPhotosClientProvider
@@ -33,11 +32,13 @@ import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.drivelink.domain.usecase.GetVolumeType
 import me.proton.core.drive.file.base.domain.entity.ThumbnailType
 import me.proton.core.drive.link.domain.entity.FileId
+import me.proton.core.drive.link.domain.extension.nodeUid
 import me.proton.core.drive.link.domain.extension.userId
+import me.proton.core.drive.link.domain.provider.ProtonSdkClientProvider
 import me.proton.core.drive.volume.domain.entity.Volume
 import me.proton.core.drive.volume.domain.entity.VolumeId
 import me.proton.core.util.kotlin.CoreLogger
-import me.proton.drive.sdk.Uid
+import me.proton.drive.sdk.entity.NodeUid
 import java.util.concurrent.atomic.AtomicInteger
 import java.io.InputStream
 import javax.inject.Inject
@@ -48,8 +49,7 @@ import me.proton.drive.sdk.entity.ThumbnailType as SdkThumbnailType
 
 @Singleton
 class GetThumbnailSdk @Inject constructor(
-    private val protonDriveClientProvider: ProtonDriveClientProvider,
-    private val protonPhotosClientProvider: ProtonPhotosClientProvider,
+    private val protonSdkClientProvider: ProtonSdkClientProvider,
     private val getVolumeType: GetVolumeType,
 ) {
     private data class BatchKey(
@@ -73,36 +73,27 @@ class GetThumbnailSdk @Inject constructor(
         fun logThumbnail(message: String) {
             CoreLogger.d(THUMBNAIL, "Batch[$batchId/${key.type}] $message")
         }
-        val shortUids = uids.map { it.takeLast(UID_LOG_LENGTH) }
-        when (key.volumeType) {
-            Volume.Type.PHOTO -> {
-                logThumbnail("photos: $shortUids")
-                protonPhotosClientProvider
-                    .getOrCreate(key.userId).getOrThrow()
-                    .enumerateThumbnails(photoUids = uids, type = key.type)
+        val shortUids = uids.map { it.value.takeLast(UID_LOG_LENGTH) }
+        logThumbnail("${key.volumeType}: $shortUids")
+        protonSdkClientProvider
+            .getOrCreate(key.userId, key.volumeType)
+            .getOrThrow()
+            .enumerateThumbnails(
+                nodeUids = uids,
+                type = key.type
+            ).withIndex().map { (index, thumbnail) ->
+                val status = if (thumbnail.result.isSuccess) {
+                    "Success"
+                } else {
+                    "Failure(${thumbnail.result.exceptionOrNull()?.message})"
+                }
+                logThumbnail(
+                    "(${index + 1}/${uids.size}) received: ${
+                        thumbnail.uid.value.takeLast(UID_LOG_LENGTH)
+                    } in $status"
+                )
+                thumbnail.uid to thumbnail.result.map { bytes -> bytes.inputStream() }
             }
-
-            Volume.Type.REGULAR -> {
-                logThumbnail("drive: $shortUids")
-                protonDriveClientProvider
-                    .getOrCreate(key.userId).getOrThrow()
-                    .enumerateThumbnails(fileUids = uids, type = key.type)
-            }
-
-            else -> error("Cannot get thumbnail for volume type: ${key.volumeType}")
-        }.withIndex().map { (index, thumbnail) ->
-            val status = if (thumbnail.result.isSuccess) {
-                "Success"
-            } else {
-                "Failure(${thumbnail.result.exceptionOrNull()?.message})"
-            }
-            logThumbnail(
-                "(${index + 1}/${uids.size}) received: ${
-                    thumbnail.uid.takeLast(UID_LOG_LENGTH)
-                } in $status"
-            )
-            thumbnail.uid to thumbnail.result.map { bytes -> bytes.inputStream() }
-        }
     }
 
     suspend operator fun invoke(
@@ -116,7 +107,7 @@ class GetThumbnailSdk @Inject constructor(
                 type = thumbnailType.toSdkType(),
                 volumeType = getVolumeType(fileId).getOrThrow(),
             ),
-            item = Uid.makeNodeUid(volumeId = volumeId.id, nodeId = fileId.id)
+            item = fileId.nodeUid(volumeId)
         )
     }
 }

@@ -107,7 +107,9 @@ class DownloadInitializer : Initializer<Unit> {
         downloadErrorHandlers.forEach { handler ->
             coRunCatching {
                 handler.onError(downloadError)
-            }.getOrNull(LogTag.DOWNLOAD, "Failed to handle download error")
+            }.onFailure { error ->
+                error.log(LogTag.DOWNLOAD, "Failed to handle download error")
+            }
         }
     }
 

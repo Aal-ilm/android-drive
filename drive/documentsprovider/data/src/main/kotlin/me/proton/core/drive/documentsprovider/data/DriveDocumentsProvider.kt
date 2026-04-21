@@ -164,7 +164,7 @@ class DriveDocumentsProvider : DocumentsProvider() {
         injections.withUploadFileLink(documentId.toDocumentId()) { _, uploadFileNode ->
             injections.cancelUploadFile(uploadFileNode).getOrNull()
         } ?: injections.withDriveLink(documentId.toDocumentId()) { userId, driveLink ->
-            injections.sendToTrash(userId, driveLink)
+            injections.sendToTrash(userId, driveLink).getOrThrow()
         }
     }
 

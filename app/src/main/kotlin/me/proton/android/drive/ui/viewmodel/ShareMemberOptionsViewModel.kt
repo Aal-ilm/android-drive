@@ -33,15 +33,16 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.options.MemberOption
 import me.proton.core.compose.component.bottomsheet.RunAction
 import me.proton.core.domain.arch.mapSuccessValueOrNull
 import me.proton.core.drive.base.data.extension.getDefaultMessage
-import me.proton.core.drive.base.data.extension.log
+import me.proton.core.drive.base.data.extension.log as logResult
 import me.proton.core.drive.base.domain.entity.Permissions
 import me.proton.core.drive.base.domain.extension.filterSuccessOrError
 import me.proton.core.drive.base.domain.extension.onFailure
-import me.proton.core.drive.base.domain.log.LogTag.SHARING
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.presentation.extension.require
@@ -145,7 +146,7 @@ class ShareMemberOptionsViewModel @Inject constructor(
         ).filterSuccessOrError()
             .last()
         dataResult.onFailure { error ->
-            error.log(SHARING)
+            error.logResult(VIEW_MODEL, "Failed to update member permissions for $memberId")
             broadcastMessages(
                 userId = userId,
                 message = error.getDefaultMessage(
@@ -163,7 +164,7 @@ class ShareMemberOptionsViewModel @Inject constructor(
             memberId = memberId,
         ).filterSuccessOrError().last()
         dataResult.onFailure { error ->
-            error.log(SHARING)
+            error.logResult(VIEW_MODEL, "Failed to delete member for $memberId")
             broadcastMessages(
                 userId = userId,
                 message = error.getDefaultMessage(

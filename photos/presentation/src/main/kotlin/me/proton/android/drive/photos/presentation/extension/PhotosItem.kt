@@ -51,18 +51,21 @@ suspend fun List<PhotosItem>.getFastScrollAnchors(
             SeparatorWithIndexAndCount(
                 separatorWithIndex = current,
                 count = (next?.index ?: size) - current.index,
-            ).also {
-                CoreLogger.v(
-                    tag = LogTag.PHOTO,
-                    message =listOf(
-                        "Triple(${it.separatorWithIndex.separator.year}",
-                        "${it.separatorWithIndex.separator.month + 1}",
-                        "${it.count - 1}),",
-                    ).joinToString(","),
-                )
-            }
+            )
         }
         .toList()
+        .also { separators ->
+            CoreLogger.d(
+                tag = LogTag.PHOTO,
+                message = buildString {
+                    append("Triples (sections=${separators.size})")
+                    append(separators.joinToString(prefix = "[", postfix = "]") {
+                            "(${it.separatorWithIndex.separator.year},${it.separatorWithIndex.separator.month + 1},${it.count - 1})"
+                        }
+                    )
+                },
+            )
+        }
     var availableAnchors = anchors - 1
     val separatorsToAnchors = separators.associateWith {
         if (availableAnchors > 0) {

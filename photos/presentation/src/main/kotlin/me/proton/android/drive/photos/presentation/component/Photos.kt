@@ -65,10 +65,10 @@ fun Photos(
 ) {
     val items = photos.collectAsLazyPagingItems()
     LaunchedEffect(items) {
-        snapshotFlow { items.loadState }
+        snapshotFlow { items.loadState to items.itemCount }
             .distinctUntilChanged()
-            .collect { loadState ->
-                viewEvent.onLoadState(loadState, items.itemCount)
+            .collect { (loadState, itemCount) ->
+                viewEvent.onLoadState(loadState, itemCount)
             }
     }
     listEffect.HandleListEffect(items = items)

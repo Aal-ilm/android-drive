@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import me.proton.android.drive.extension.getDefaultMessage
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.photos.domain.entity.PhotoBackupState
 import me.proton.android.drive.photos.domain.usecase.GetPhotosConfiguration
 import me.proton.android.drive.photos.domain.usecase.GetPhotosDriveLink
@@ -45,11 +46,10 @@ import me.proton.android.drive.ui.viewstate.PhotosBackupViewState
 import me.proton.android.drive.ui.viewstate.TagsMigrationProgressState
 import me.proton.core.domain.arch.mapSuccessValueOrNull
 import me.proton.core.drive.backup.domain.entity.BackupNetworkType
-import me.proton.core.drive.base.data.extension.log
 import me.proton.core.drive.base.domain.exception.DriveException
 import me.proton.core.drive.base.domain.extension.firstSuccessOrError
 import me.proton.core.drive.base.domain.extension.toResult
-import me.proton.core.drive.base.domain.log.LogTag.BACKUP
+import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.domain.usecase.IsIgnoringBatteryOptimizations
@@ -180,7 +180,7 @@ class PhotosBackupViewModel @Inject constructor(
                         }
                     }
                 }.onFailure { error ->
-                    error.log(BACKUP)
+                    error.log(VIEW_MODEL, "Failed to toggle backup")
                     val userError = if (error.cause is DriveException) {
                         error.cause as DriveException
                     } else {
@@ -201,7 +201,7 @@ class PhotosBackupViewModel @Inject constructor(
         override val onToggleMobileData = {
             viewModelScope.launch {
                 togglePhotosNetworkConfiguration(userId).onFailure { error ->
-                    error.log(BACKUP)
+                    error.log(VIEW_MODEL, "Failed to toggle photos network configuration")
                     broadcastMessages(
                         userId = userId,
                         message = error.getDefaultMessage(

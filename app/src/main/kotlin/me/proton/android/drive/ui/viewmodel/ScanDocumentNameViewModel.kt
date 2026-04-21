@@ -46,7 +46,6 @@ import me.proton.android.drive.extension.getDefaultMessage
 import me.proton.android.drive.extension.log
 import me.proton.core.drive.base.domain.entity.TimestampMs
 import me.proton.core.drive.base.domain.extension.bytes
-import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.extension.toResult
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
@@ -189,20 +188,18 @@ class ScanDocumentNameViewModel @Inject constructor(
                     error.showOnDoneError()
                     return@launch
                 }
-            removeScanResult(userId, scanResult.id).getOrNull(
-                tag = VIEW_MODEL,
-                message = "Failed to remove scan result"
-            )
+            removeScanResult(userId, scanResult.id).onFailure { error ->
+                error.log(VIEW_MODEL, "Failed to remove scan result")
+            }
             navigateBack()
         }
     }
 
     private fun onCancel(navigateBack: () -> Unit) {
         viewModelScope.launch {
-            clearScanResult(userId, scanResultId).getOrNull(
-                tag = VIEW_MODEL,
-                message = "Failed clearing scan result $scanResultId",
-            )
+            clearScanResult(userId, scanResultId).onFailure { error ->
+                error.log(VIEW_MODEL, "Failed clearing scan result $scanResultId")
+            }
             navigateBack()
         }
     }

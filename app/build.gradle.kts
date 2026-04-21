@@ -27,7 +27,6 @@ plugins {
     id("dagger.hilt.android.plugin")
     id("kotlin-parcelize")
     kotlin("android")
-    kotlin("kapt")
     id("me.proton.core.gradle-plugins.environment-config") version "1.3.0"
 }
 
@@ -82,8 +81,7 @@ driveModule(
     implementation(libs.treessence)
 
     androidTestImplementation(libs.dagger.hilt.android.testing)
-    kapt(libs.dagger.hilt.android.compiler)
-    kaptAndroidTest(libs.dagger.hilt.android.compiler)
+    add("kspAndroidTest", libs.dagger.hilt.android.compiler)
 
     androidTestUtil(libs.androidx.test.orchestrator)
     androidTestUtil(libs.androidx.test.services)

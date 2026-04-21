@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.ui.common.onClick
 import me.proton.android.drive.ui.navigation.PagerType
 import me.proton.android.drive.ui.navigation.Screen
@@ -51,9 +52,8 @@ import me.proton.android.drive.ui.viewstate.OfflineViewState
 import me.proton.android.drive.usecase.OpenProtonDocumentInBrowser
 import me.proton.core.domain.arch.onSuccess
 import me.proton.core.drive.base.data.extension.getDefaultMessage
-import me.proton.core.drive.base.data.extension.log
+import me.proton.core.drive.base.data.extension.log as logResult
 import me.proton.core.drive.base.domain.entity.Percentage
-import me.proton.core.drive.base.domain.entity.onProcessing
 import me.proton.core.drive.base.domain.extension.onFailure
 import me.proton.core.drive.base.domain.log.LogTag.VIEW_MODEL
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
@@ -78,7 +78,6 @@ import me.proton.core.drive.messagequeue.domain.entity.BroadcastMessage
 import me.proton.core.drive.share.domain.entity.ShareId
 import me.proton.core.drive.sorting.domain.entity.Sorting
 import me.proton.core.drive.sorting.domain.usecase.GetSorting
-import me.proton.core.util.kotlin.CoreLogger
 import me.proton.drive.android.settings.domain.entity.LayoutType
 import me.proton.drive.android.settings.domain.usecase.GetLayoutType
 import me.proton.drive.android.settings.domain.usecase.ToggleLayoutType
@@ -113,7 +112,7 @@ class OfflineViewModel @Inject constructor(
                 .onSuccess { driveLink ->
                     return@map driveLink
                 }
-                .onFailure { error -> error.log(VIEW_MODEL) }
+                .onFailure { error -> error.logResult(VIEW_MODEL, "Cannot get drive link for ${folderId?.id}") }
             return@map null
         }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val driveLinks: Flow<PagingData<DriveLink>> = flowOf(folderId).flatMapLatest { folderId ->
@@ -135,6 +134,7 @@ class OfflineViewModel @Inject constructor(
             title = savedStateHandle.get(Screen.Files.FOLDER_NAME),
             titleResId = I18N.string.title_offline_available,
             navigationIconResId = CorePresentation.drawable.ic_arrow_back,
+            navigationContentDescription = appContext.getString(I18N.string.common_close_action),
             drawerGesturesEnabled = false,
             sorting = Sorting.DEFAULT,
             listContentState = listContentState.value,
@@ -267,7 +267,14 @@ class OfflineViewModel @Inject constructor(
     }
 
     private fun onToggleLayout() {
-        viewModelScope.launch { toggleLayoutType(userId = userId, currentLayoutType = layoutType.value) }
+        viewModelScope.launch {
+            toggleLayoutType(
+                userId = userId,
+                currentLayoutType = layoutType.value
+            ).onFailure { error ->
+                error.log(VIEW_MODEL, "Failed to toggle layout type")
+            }
+        }
     }
 
     private fun retryList() {

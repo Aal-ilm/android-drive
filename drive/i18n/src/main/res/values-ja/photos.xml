@@ -61,7 +61,7 @@
   <string name="photos_error_no_folders">バックアップ用の %1$s フォルダーが見つかりません</string>
   <string name="photos_error_backup_disabled">バックアップが無効になりました。</string>
   <string name="photos_error_backup_disabled_action">オンにする</string>
-  <string name="photos_error_backup_missing_folder">Default camera folder not found</string>
+  <string name="photos_error_backup_missing_folder">デフォルトのカメラフォルダが見つかりません</string>
   <string name="photos_error_backup_failed">バックアップに失敗しました。</string>
   <string name="photos_error_backup_temporarily_disabled">バックアップは一時的に無効にされています。</string>
   <string name="photos_error_missing_permissions">権限がありません。</string>
@@ -168,6 +168,6 @@
   <plurals name="photos_tags_migration_ongoing">
     <item quantity="other">進行中、%1$s個のファイルが移行中、%2$s個がダウンロード待機中</item>
   </plurals>
-  <string name="photos_folder_selection_title">Backup photos from</string>
-  <string name="photos_folder_selection_description">Select folders to back up and their photos will appear in the Photos tab.</string>
+  <string name="photos_folder_selection_title">写真をバックアップ</string>
+  <string name="photos_folder_selection_description">バックアップするフォルダを選択すると、その写真が「写真」タブに表示されます。</string>
 </resources>

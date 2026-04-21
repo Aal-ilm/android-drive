@@ -81,6 +81,7 @@ fun Settings(
     Column(modifier) {
         TopAppBar(
             navigationIcon = painterResource(id = viewState.navigationIcon),
+            navigationContentDescription = viewState.navigationContentDescription,
             onNavigationIcon = viewEvent.navigateBack,
             title = stringResource(id = I18N.string.common_settings),
         )
@@ -215,6 +216,7 @@ private fun SettingsPreview() {
             modifier = Modifier.background(MaterialTheme.colors.background),
             viewState = SettingsViewState(
                 CorePresentation.drawable.ic_proton_arrow_up,
+                null,
                 I18N.string.common_app,
                 "1.0.0",
                 listOf(

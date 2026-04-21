@@ -41,10 +41,12 @@ import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.provider.ProtonDriveClientProvider
 import me.proton.core.drive.base.domain.provider.ProtonPhotosClientProvider
 import me.proton.core.drive.base.domain.repository.ClientUidRepository
+import me.proton.core.drive.link.domain.provider.ProtonSdkClientProvider
 import me.proton.core.drive.test.TestConfigurationProvider
 import me.proton.core.drive.test.handler.MemoryEventHandler
 import me.proton.core.drive.test.provider.TestProtonDriveClientProvider
 import me.proton.core.drive.test.provider.TestProtonPhotosClientProvider
+import me.proton.core.drive.test.provider.TestProtonSdkClientProvider
 import me.proton.core.drive.test.repository.TestClientUidRepository
 import javax.inject.Singleton
 
@@ -117,4 +119,8 @@ abstract class ApplicationBindsModule {
     @Binds
     @Singleton
     abstract fun bindsAppProtonPhotosClientProvider(impl: TestProtonPhotosClientProvider): ProtonPhotosClientProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindsAppProtonSdkClientProvider(impl: TestProtonSdkClientProvider): ProtonSdkClientProvider
 }

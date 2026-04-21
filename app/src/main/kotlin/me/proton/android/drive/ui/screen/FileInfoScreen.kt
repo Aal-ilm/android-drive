@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,6 +36,7 @@ import me.proton.android.drive.ui.viewstate.FileInfoViewState
 import me.proton.core.compose.theme.ProtonDimens.DefaultSpacing
 import me.proton.core.drive.base.presentation.component.TopAppBar
 import me.proton.core.drive.file.info.presentation.FileInfoContent
+import me.proton.core.drive.i18n.R as I18N
 import me.proton.core.presentation.R as CorePresentation
 
 @ExperimentalCoroutinesApi
@@ -65,6 +67,7 @@ fun FileInfo(
     ) {
         TopAppBar(
             navigationIcon = painterResource(id = CorePresentation.drawable.ic_arrow_back),
+            navigationContentDescription = stringResource(I18N.string.common_back_action),
             onNavigationIcon = navigateBack,
             title = "",
             modifier = Modifier.statusBarsPadding()

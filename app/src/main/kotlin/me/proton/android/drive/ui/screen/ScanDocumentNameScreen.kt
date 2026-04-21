@@ -45,6 +45,7 @@ import me.proton.core.compose.theme.ProtonTheme
 import me.proton.core.compose.theme.headlineSmallNorm
 import me.proton.core.compose.theme.interactionNorm
 import me.proton.core.drive.base.presentation.component.TopAppBar
+import me.proton.core.drive.i18n.R as I18N
 import me.proton.core.presentation.R as CorePresentation
 
 @Composable
@@ -101,6 +102,7 @@ fun TopAppBar(
     val focusManager = LocalFocusManager.current
     TopAppBar(
         navigationIcon = painterResource(id = CorePresentation.drawable.ic_proton_cross),
+        navigationContentDescription = stringResource(I18N.string.common_close_action),
         onNavigationIcon = viewEvent.onBackPressed,
         title = stringResource(id = viewState.titleResId),
         modifier = modifier.statusBarsPadding(),

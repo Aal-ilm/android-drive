@@ -78,7 +78,7 @@
   <string name="common_add_to_albums_action">Afegeix als àlbums</string>
   <string name="common_tag_photo_action">Escanegeu la foto per etiquetes</string>
   <string name="common_save_as_action">Desa com</string>
-  <string name="common_open_action">Obrir</string>
+  <string name="common_open_action">Obre</string>
   <!-- endregion -->
   <!-- region Common file types -->
   <string name="common_type_audio">Àudio</string>

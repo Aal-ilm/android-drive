@@ -60,6 +60,7 @@ fun DefaultHomeTab(
     Column(modifier = modifier) {
         TopAppBar(
             navigationIcon = painterResource(id = CorePresentation.drawable.ic_arrow_back),
+            navigationContentDescription = stringResource(I18N.string.common_back_action),
             onNavigationIcon = navigateBack,
             title = title,
             modifier = Modifier.statusBarsPadding(),

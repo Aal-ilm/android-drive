@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import me.proton.android.drive.extension.log
 import me.proton.android.drive.photos.domain.usecase.AddToAlbumInfo
 import me.proton.android.drive.photos.domain.usecase.GetAddToAlbumPhotoListings
 import me.proton.android.drive.photos.domain.usecase.GetPhotoListingCount
@@ -118,11 +119,19 @@ open class PhotosPickerAndSelectionViewModel(
     private fun addToAlbumAndToSelected(driveLink: DriveLink.File) = viewModelScope.launch {
         val photoListings = setOf(driveLink.toVolumePhotoListing())
         if (destinationAlbumId == null) {
-            addToAlbumInfo(photoListings)
-                .getOrNull(VIEW_MODEL, "Failed to add to album info for new album ShareId=${driveLink.id.shareId.id.logId()}, LinkId=${driveLink.id.id.logId()}")
+            addToAlbumInfo(photoListings).onFailure { error ->
+                error.log(
+                    VIEW_MODEL,
+                    "Failed to add to album info for new album ShareId=${driveLink.id.shareId.id.logId()}, LinkId=${driveLink.id.id.logId()}"
+                )
+            }
         } else {
-            addToAlbumInfo(destinationAlbumId, photoListings)
-                .getOrNull(VIEW_MODEL, "Failed to add to album info ShareId=${driveLink.id.shareId.id.logId()}, LinkId=${driveLink.id.id.logId()}")
+            addToAlbumInfo(destinationAlbumId, photoListings).onFailure { error ->
+                error.log(
+                    VIEW_MODEL,
+                    "Failed to add to album info ShareId=${driveLink.id.shareId.id.logId()}, LinkId=${driveLink.id.id.logId()}"
+                )
+            }
         }
         addSelected(listOf(driveLink.id))
     }
@@ -130,11 +139,19 @@ open class PhotosPickerAndSelectionViewModel(
     private fun removeFromAlbumAndFromSelected(driveLink: DriveLink.File) = viewModelScope.launch {
         val photoListings = setOf(driveLink.toVolumePhotoListing())
         if (destinationAlbumId == null) {
-            removeFromAlbumInfo(photoListings)
-                .getOrNull(VIEW_MODEL, "Failed to remove from album info for new album ShareId=${driveLink.id.shareId.id.logId()}, LinkId=${driveLink.id.id.logId()}")
+            removeFromAlbumInfo(photoListings).onFailure { error ->
+                error.log(
+                    VIEW_MODEL,
+                    "Failed to remove from album info for new album ShareId=${driveLink.id.shareId.id.logId()}, LinkId=${driveLink.id.id.logId()}"
+                )
+            }
         } else {
-            removeFromAlbumInfo(destinationAlbumId, photoListings)
-                .getOrNull(VIEW_MODEL, "Failed to remove from album info ShareId=${driveLink.id.shareId.id.logId()}, LinkId=${driveLink.id.id.logId()}")
+            removeFromAlbumInfo(destinationAlbumId, photoListings).onFailure { error ->
+                error.log(
+                    VIEW_MODEL,
+                    "Failed to remove from album info ShareId=${driveLink.id.shareId.id.logId()}, LinkId=${driveLink.id.id.logId()}"
+                )
+            }
         }
         removeSelected(listOf(driveLink.id))
     }

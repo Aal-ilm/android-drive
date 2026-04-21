@@ -51,6 +51,7 @@ class ShouldCancelNotification @Inject constructor(
         }
 
         is Event.Download -> false
+        is Event.DownloadFileProgress -> event.downloadingCount == 0
         is Event.ForcedSignOut -> false
         is Event.NoSpaceLeftOnDevice -> false
         is Event.Backup -> false

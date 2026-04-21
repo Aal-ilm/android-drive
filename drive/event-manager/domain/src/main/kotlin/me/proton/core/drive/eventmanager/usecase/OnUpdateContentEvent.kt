@@ -60,7 +60,7 @@ class OnUpdateContentEvent @Inject constructor(
                             .getOrNull(LogTag.EVENTS, "Cannot get drive link ${it.id.id.logId()}")
                     }
                 }
-            )
+            ).getOrNull(LogTag.EVENTS, "Failed to download links")
         }
     }
 

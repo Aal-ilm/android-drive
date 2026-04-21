@@ -99,9 +99,6 @@ class UploadFileSdk @Inject constructor(
                     uploadSdkManager.close(uploadFileLink)
                     result
                 }
-            } catch (error: UploadNotFoundException) {
-                updateUploadState(uploadFileLink.id, UploadState.UNPROCESSED)
-                throw error
             } finally {
                 if (!isActive) {
                     withContext(NonCancellable) {

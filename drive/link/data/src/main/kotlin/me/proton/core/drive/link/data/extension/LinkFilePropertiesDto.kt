@@ -43,4 +43,5 @@ fun LinkFilePropertiesDto.toLinkFilePropertiesEntity(userId: UserId, shareId: St
             .thumbnails
             .firstOrNull { linkThumbnailDto -> linkThumbnailDto.type == LinkThumbnailDto.TYPE_PHOTO }
             ?.thumbnailId,
+        activeRevisionChecksumVerified = activeRevision.checksumVerified,
     )

@@ -20,7 +20,10 @@ package me.proton.core.drive.link.domain.extension
 import me.proton.core.domain.entity.UserId
 import me.proton.core.drive.link.domain.entity.LinkId
 import me.proton.core.drive.volume.domain.entity.VolumeId
-import me.proton.drive.sdk.Uid
+import me.proton.drive.sdk.entity.LegacyNodeUid
+import me.proton.drive.sdk.entity.LegacyRevisionUid
+import me.proton.drive.sdk.entity.NodeUid
+import me.proton.drive.sdk.entity.RevisionUid
 
 val LinkId.userId: UserId get() = shareId.userId
 
@@ -31,4 +34,13 @@ fun LinkId?.equalsAsLinkId(other: LinkId?): Boolean =
         shareId == other?.shareId && id == other.id
     }
 
-fun LinkId.nodeUid(volumeId: VolumeId) = Uid.makeNodeUid(volumeId.id, id)
+fun LinkId.nodeUid(volumeId: VolumeId): NodeUid = LegacyNodeUid(
+    volumeId = volumeId.id,
+    linkId = id,
+)
+
+fun LinkId.revisionUid(volumeId: VolumeId, revisionId: String): RevisionUid = LegacyRevisionUid(
+    volumeId = volumeId.id,
+    linkId = id,
+    revisionId = revisionId,
+)

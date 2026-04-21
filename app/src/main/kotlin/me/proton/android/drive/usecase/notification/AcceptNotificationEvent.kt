@@ -35,6 +35,7 @@ class AcceptNotificationEvent @Inject constructor(
                     && (newEvent.state == UploadState.NEW_UPLOAD || newEvent.exists(notificationId))
 
             is Event.Download -> true
+            is Event.DownloadFileProgress -> true
             is Event.ForcedSignOut -> true
             is Event.NoSpaceLeftOnDevice -> true
             is Event.Backup -> true

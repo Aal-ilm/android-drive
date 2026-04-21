@@ -80,6 +80,7 @@ abstract class HostFilesViewModel(
         titleResId = I18N.string.title_my_files,
         sorting = Sorting.DEFAULT,
         navigationIconResId = 0,
+        navigationContentDescription = null,
         drawerGesturesEnabled = false,
         listContentState = listContentState.value,
         listContentAppendingState = listContentAppendingState.value,

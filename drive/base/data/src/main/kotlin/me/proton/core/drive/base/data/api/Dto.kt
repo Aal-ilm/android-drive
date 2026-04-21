@@ -41,6 +41,7 @@ object Dto {
     const val BLOCK_LIST = "BlockList"
     const val BLOCK_NUMBER = "BlockNumber"
     const val CAPTURE_TIME = "CaptureTime"
+    const val CHECKSUM_VERIFIED = "ChecksumVerified"
     const val CHILD_LINK_IDS = "ChildLinkIDs"
     const val CLIENT_UID = "ClientUID"
     const val CLIENT_UIDS = "ClientUIDs"

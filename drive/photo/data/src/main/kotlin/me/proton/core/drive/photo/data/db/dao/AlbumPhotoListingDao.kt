@@ -104,7 +104,7 @@ abstract class AlbumPhotoListingDao : BaseDao<AlbumPhotoListingEntity>() {
     }
 
     @Query(ALBUM_PHOTO_LISTING_ASC)
-    internal abstract suspend fun getAlbumPhotoListingsAsc(
+    protected abstract suspend fun getAlbumPhotoListingsAsc(
         userId: UserId,
         volumeId: String,
         albumId: String,
@@ -114,7 +114,7 @@ abstract class AlbumPhotoListingDao : BaseDao<AlbumPhotoListingEntity>() {
     ): List<AlbumPhotoListingWithFileProperties>
 
     @Query(ALBUM_PHOTO_LISTING_ASC)
-    internal abstract fun getAlbumPhotoListingsAscFlow(
+    protected abstract fun getAlbumPhotoListingsAscFlow(
         userId: UserId,
         volumeId: String,
         albumId: String,
@@ -124,7 +124,7 @@ abstract class AlbumPhotoListingDao : BaseDao<AlbumPhotoListingEntity>() {
     ): Flow<List<AlbumPhotoListingWithFileProperties>>
 
     @Query(ALBUM_PHOTO_LISTING_DESC)
-    internal abstract suspend fun getAlbumPhotoListingsDesc(
+    protected abstract suspend fun getAlbumPhotoListingsDesc(
         userId: UserId,
         volumeId: String,
         albumId: String,
@@ -134,7 +134,7 @@ abstract class AlbumPhotoListingDao : BaseDao<AlbumPhotoListingEntity>() {
     ): List<AlbumPhotoListingWithFileProperties>
 
     @Query(ALBUM_PHOTO_LISTING_DESC)
-    internal abstract fun getAlbumPhotoListingsDescFlow(
+    protected abstract fun getAlbumPhotoListingsDescFlow(
         userId: UserId,
         volumeId: String,
         albumId: String,

@@ -29,7 +29,7 @@ import coil.size.Size
 import me.proton.core.drive.thumbnail.presentation.entity.ThumbnailVO
 import me.proton.core.drive.thumbnail.presentation.painter.ThumbnailPainterWrapper
 
-val ThumbnailVO.cacheKey: String get() = "${revisionId}_${thumbnailId.type}"
+val ThumbnailVO.cacheKey: String get() = "$volumeId-$revisionId-${thumbnailId.type}"
 
 fun ThumbnailVO.preCache(context: Context, imageLoader: ImageLoader) = imageLoader.enqueue(
     request = ImageRequest.Builder(context)
@@ -42,8 +42,8 @@ fun ThumbnailVO.preCache(context: Context, imageLoader: ImageLoader) = imageLoad
 fun ThumbnailVO.painter() = ThumbnailPainterWrapper(
     painter = rememberAsyncImagePainter(
         ImageRequest.Builder(LocalContext.current)
-            .scale(Scale.FILL)
             .data(this)
+            .scale(Scale.FILL)
             .size(Size.ORIGINAL)
             .build()
     )
