@@ -84,9 +84,7 @@ class CreateNewFileSdk @Inject constructor(
                     uploadFileLink.enqueue(
                         name = fileName,
                         size = size,
-                        lastModified = requireNotNull(lastModified) {
-                            "Cannot get last modified of $uriString"
-                        },
+                        lastModified = lastModified,
                     )
                 }
             } finally {
@@ -102,7 +100,7 @@ class CreateNewFileSdk @Inject constructor(
     private suspend fun UploadFileLink.enqueue(
         name: String,
         size: Bytes,
-        lastModified: Instant,
+        lastModified: Instant?,
     ) = uploadSdkManager.enqueue(this@enqueue) { client ->
         client.uploader(
             request = FileUploaderRequest(

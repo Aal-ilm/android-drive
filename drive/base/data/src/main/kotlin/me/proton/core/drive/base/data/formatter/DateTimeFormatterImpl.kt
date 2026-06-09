@@ -24,6 +24,8 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.Date
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import java.time.format.DateTimeFormatter as JavaDateTimeFormatter
 
 class DateTimeFormatterImpl @Inject constructor() : DateTimeFormatter {
@@ -34,7 +36,14 @@ class DateTimeFormatterImpl @Inject constructor() : DateTimeFormatter {
             ZoneOffset.UTC
         ).format(JavaDateTimeFormatter.ISO_INSTANT)
 
+    @OptIn(ExperimentalTime::class)
     override fun parseFromIso8601String(iso8601: String): Result<TimestampS> = coRunCatching {
-        TimestampS(ZonedDateTime.parse(iso8601).toEpochSecond())
+        TimestampS(Instant.parse(normalize(iso8601)).epochSeconds)
+    }
+
+    companion object {
+        // Normalize missing colon i.e. +0000
+        private fun normalize(iso8601: String): String =
+            iso8601.replace(Regex("([+-]\\d{2})(\\d{2})$"), "$1:$2")
     }
 }

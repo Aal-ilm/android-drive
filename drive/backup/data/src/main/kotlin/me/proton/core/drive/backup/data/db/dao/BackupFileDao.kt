@@ -20,6 +20,7 @@ package me.proton.core.drive.backup.data.db.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import me.proton.core.data.room.db.BaseDao
 import me.proton.core.domain.entity.UserId
@@ -31,6 +32,7 @@ import me.proton.core.drive.base.data.db.Column
 
 @Dao
 abstract class BackupFileDao : BaseDao<BackupFileEntity>() {
+    @Transaction
     @Query(
         """
         SELECT COUNT(*) FROM (
@@ -102,6 +104,7 @@ abstract class BackupFileDao : BaseDao<BackupFileEntity>() {
         limit: Int,
     ): List<BackupFileEntity>
 
+    @Transaction
     @Query(
         """
         SELECT BackupFileEntity.* FROM BackupFileEntity
@@ -142,6 +145,7 @@ abstract class BackupFileDao : BaseDao<BackupFileEntity>() {
         offset: Int,
     ): List<BackupFileEntity>
 
+    @Transaction
     @Query(
         """
         SELECT 
@@ -436,6 +440,7 @@ abstract class BackupFileDao : BaseDao<BackupFileEntity>() {
         vararg state: BackupFileState,
     ): Boolean
 
+    @Transaction
     @Query(
         """
         SELECT 

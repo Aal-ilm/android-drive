@@ -32,6 +32,7 @@ class StatsEventHandler @Inject constructor(
     private val backupCompletedSideEffect: BackupCompletedSideEffect,
     private val backupStartedSideEffect: BackupStartedSideEffect,
     private val uploadSideEffect: UploadSideEffect,
+    private val uploadDocumentSideEffect: UploadDocumentSideEffect,
 ) : EventHandler {
 
     private val mutex = Mutex()
@@ -42,7 +43,10 @@ class StatsEventHandler @Inject constructor(
         when (event) {
             is BackupStarted -> backupStartedSideEffect(event)
             is BackupCompleted -> backupCompletedSideEffect(event)
-            is Upload -> uploadSideEffect(event)
+            is Upload -> {
+                uploadSideEffect(event)
+                uploadDocumentSideEffect(event)
+            }
             else -> Unit
         }
     }

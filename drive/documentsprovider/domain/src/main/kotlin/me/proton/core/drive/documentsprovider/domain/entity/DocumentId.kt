@@ -42,7 +42,9 @@ data class DocumentId(
     val userId: UserId,
     @SerialName("linkId")
     @Serializable(with = LinkIdSerializer::class)
-    val linkId: LinkId?,
+    val linkId: LinkId? = null,
+    @SerialName("uploadId")
+    val uploadId: String? = null,
 )
 
 internal class UserIdSerializer : KSerializer<UserId> {

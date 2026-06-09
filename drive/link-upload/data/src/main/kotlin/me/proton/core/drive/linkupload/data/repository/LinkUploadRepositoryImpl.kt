@@ -260,6 +260,9 @@ class LinkUploadRepositoryImpl @Inject constructor(
             contentKeyPacketSignature = contentKeyPacketSignature,
         )
 
+    override suspend fun updateUploadFileLinkLinkIdAndRevisionId(uploadFileLinkId: Long, linkId: String, revisionId: String) =
+        db.linkUploadDao.updateLinkIdAndRevisionId(uploadFileLinkId, linkId, revisionId)
+
     override suspend fun updateUploadFileLinkManifestSignature(uploadFileLinkId: Long, manifestSignature: String) =
         db.linkUploadDao.updateManifestSignature(uploadFileLinkId, manifestSignature)
 

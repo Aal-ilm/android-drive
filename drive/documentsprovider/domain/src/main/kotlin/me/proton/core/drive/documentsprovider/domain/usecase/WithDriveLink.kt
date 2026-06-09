@@ -34,8 +34,12 @@ class WithDriveLink @Inject constructor(
 
     suspend inline operator fun <T> invoke(documentId: DocumentId, block: (userId: UserId, driveLink: DriveLink) -> T): T {
         val (userId, linkId) = documentId
-        val driveLink = (linkId?.let { getDriveLink(linkId) }
-            ?: getDriveLink(userId, folderId = null)).firstSuccessOrError()
+        val driveLink = if (linkId != null) {
+            getDriveLink(linkId)
+        } else {
+            check(documentId.uploadId == null) { "Cannot get drive link with upload id" }
+            getDriveLink(userId, folderId = null)
+        }.firstSuccessOrError()
         return block(userId, driveLink.toResult().getOrThrow())
     }
 }

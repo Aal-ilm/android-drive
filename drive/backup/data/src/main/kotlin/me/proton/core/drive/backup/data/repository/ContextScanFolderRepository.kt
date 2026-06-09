@@ -32,8 +32,9 @@ import me.proton.core.drive.backup.domain.entity.BackupFile
 import me.proton.core.drive.backup.domain.entity.BackupFileState
 import me.proton.core.drive.backup.domain.entity.BackupFolder
 import me.proton.core.drive.backup.domain.repository.ScanFolderRepository
+import me.proton.core.drive.base.data.extension.convertToTimestampMs
 import me.proton.core.drive.base.data.extension.log
-import me.proton.core.drive.base.domain.entity.TimestampS
+import me.proton.core.drive.base.domain.entity.toTimestampS
 import me.proton.core.drive.base.domain.extension.bytes
 import me.proton.core.drive.base.domain.log.LogTag.BACKUP
 import me.proton.core.drive.base.domain.provider.ConfigurationProvider
@@ -107,8 +108,12 @@ private fun Cursor.createMedia(backupFolder: BackupFolder, uri: Uri): List<Backu
                         hash = null,
                         size = getLong(size).bytes,
                         state = BackupFileState.IDLE,
-                        date = TimestampS(getLong(dateAdded)),
-                        lastModified = TimestampS(getLong(dateModified)),
+                        date = getLong(dateAdded).let { dateAddedValue ->
+                            requireNotNull(dateAddedValue.convertToTimestampMs?.toTimestampS()) {
+                                "Cannot read date added from: $dateAddedValue"
+                            }
+                        },
+                        lastModified = getLong(dateModified).convertToTimestampMs?.toTimestampS(),
                     )
                 )
             }.onFailure { error ->

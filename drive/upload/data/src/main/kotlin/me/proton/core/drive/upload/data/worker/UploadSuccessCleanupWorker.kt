@@ -36,7 +36,9 @@ import me.proton.core.drive.base.domain.provider.ConfigurationProvider
 import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.linkupload.domain.entity.UploadFileLink
+import me.proton.core.drive.linkupload.domain.entity.UploadState
 import me.proton.core.drive.linkupload.domain.usecase.GetUploadFileLink
+import me.proton.core.drive.linkupload.domain.usecase.UpdateUploadState
 import me.proton.core.drive.upload.data.extension.log
 import me.proton.core.drive.upload.data.extension.logTag
 import me.proton.core.drive.upload.data.manager.uniqueUploadThrottleWorkName
@@ -62,6 +64,7 @@ class UploadSuccessCleanupWorker @AssistedInject constructor(
     broadcastMessages: BroadcastMessages,
     getUploadFileLink: GetUploadFileLink,
     uploadErrorManager: UploadErrorManager,
+    private val updateUploadState: UpdateUploadState,
     private val removeUploadFile: RemoveUploadFile,
     private val uriResolver: UriResolver,
     private val announceUploadEvent: AnnounceUploadEvent,
@@ -89,6 +92,7 @@ class UploadSuccessCleanupWorker @AssistedInject constructor(
         uploadFileLink: UploadFileLink,
     ): Result = with(uploadFileLink) {
         logWorkState("clean ${uploadFileLink.uriString}")
+        updateUploadState(uploadFileLink.id, UploadState.CLEANUP).getOrThrow()
         announceUploadEvent(
             uploadFileLink = uploadFileLink,
             uploadEvent = Event.Upload(

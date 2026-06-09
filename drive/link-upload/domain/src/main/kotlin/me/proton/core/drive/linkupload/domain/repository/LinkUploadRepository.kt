@@ -122,6 +122,8 @@ interface LinkUploadRepository {
         contentKeyPacketSignature: String,
     )
 
+    suspend fun updateUploadFileLinkLinkIdAndRevisionId(uploadFileLinkId: Long, linkId: String, revisionId: String)
+
     suspend fun updateUploadFileLinkManifestSignature(uploadFileLinkId: Long, manifestSignature: String)
 
     suspend fun updateUploadFileLinkName(uploadFileLinkId: Long, name: String)

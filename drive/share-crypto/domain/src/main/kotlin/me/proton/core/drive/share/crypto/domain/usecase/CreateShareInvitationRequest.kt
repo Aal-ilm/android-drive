@@ -64,6 +64,7 @@ class CreateShareInvitationRequest @Inject constructor(
             userId = shareId.userId,
             email = inviteeEmail,
             unverified = true,
+            isStale = true,
         ).getOrThrow()
         if (publicAddress != null) {
             createInternalRequest(

@@ -44,6 +44,8 @@ class WithUploadFileLink @Inject constructor(
         documentId.linkId?.let { linkId ->
             val fileId = FileId(linkId.shareId, linkId.id)
             block(documentId.userId, getUploadFileLink(fileId).toResult().getOrThrow())
+        } ?: documentId.uploadId?.let { uploadId ->
+            block(documentId.userId, getUploadFileLink(uploadId.toLong()).toResult().getOrThrow())
         } ?: withDriveLinkFile(documentId) { userId, driveLink ->
             block(userId, getUploadFileLink(driveLink.id).toResult().getOrThrow())
         }

@@ -19,6 +19,7 @@ package me.proton.core.drive.linktrash.data.db.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import me.proton.core.data.room.db.BaseDao
 import me.proton.core.drive.link.data.db.LinkDao.Companion.PROPERTIES_ENTITIES_JOIN_STATEMENT
 import me.proton.core.drive.link.data.db.entity.LinkWithPropertiesEntity
@@ -30,6 +31,7 @@ abstract class TrashWorkDao : BaseDao<TrashWorkEntity>() {
     @Query("SELECT EXISTS(SELECT * FROM TrashWorkEntity WHERE work_id = :workId)")
     abstract suspend fun hasWorkId(workId: String): Boolean
 
+    @Transaction
     @Query("SELECT * FROM $TRASH_WORK_WITH_LINKS WHERE work_id = :workId")
     abstract suspend fun getAllLinkWithProperties(workId: String): List<LinkWithPropertiesEntity>
 

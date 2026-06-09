@@ -51,7 +51,6 @@ class SdkIntegrityMetricsNotifier @Inject constructor(
     private val countConstraint: CountConstraint,
     private val getPrimaryUser: GetPrimaryUser,
     private val reportError: ReportError,
-    private val reportExtraInfo: ReportExtraInfo,
 ) {
 
     suspend operator fun invoke(
@@ -70,14 +69,10 @@ class SdkIntegrityMetricsNotifier @Inject constructor(
             notifyIntegrityErroringUsersTotalMetric(
                 volumeType = volumeType
             )
-            if (decryptionErrorEvent.field == EncryptedField.NODE_EXTENDED_ATTRIBUTES) {
-                reportExtraInfo(decryptionErrorEvent)
-            } else {
-                reportError(
-                    tag = DRIVE_SDK,
-                    message = "Decryption error: $decryptionErrorEvent",
-                )
-            }
+            reportError(
+                tag = DRIVE_SDK,
+                message = "Decryption error: $decryptionErrorEvent",
+            )
         }
     }
 

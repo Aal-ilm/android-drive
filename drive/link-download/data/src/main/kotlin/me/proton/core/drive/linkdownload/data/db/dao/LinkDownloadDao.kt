@@ -143,6 +143,7 @@ interface LinkDownloadDao : LinkDao {
         userId: UserId,
     ): Flow<Long>
 
+    @Transaction
     @Query("""
         SELECT 
             LinkDownloadStateEntity.state
@@ -170,6 +171,7 @@ interface LinkDownloadDao : LinkDao {
         offset: Int,
     ): List<LinkDownloadState?>
 
+    @Transaction
     @Query("""
         SELECT
             LinkDownloadStateEntity.state

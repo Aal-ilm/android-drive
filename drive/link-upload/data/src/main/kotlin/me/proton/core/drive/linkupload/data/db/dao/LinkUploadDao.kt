@@ -193,6 +193,7 @@ abstract class LinkUploadDao : BaseDao<LinkUploadEntity>() {
     """)
     abstract fun getAllWithUriByPriority(userId: UserId, states: Set<UploadState>, count: Int): Flow<List<LinkUploadEntity>>
 
+    @Transaction
     @Query("""
         SELECT LinkUploadEntity.* FROM LinkUploadEntity
         INNER JOIN ShareEntity ON
@@ -208,6 +209,7 @@ abstract class LinkUploadDao : BaseDao<LinkUploadEntity>() {
     """)
     abstract fun getAllWithUriByPriorityWithShareType(userId: UserId, states: Set<UploadState>, type: Long, count: Int): Flow<List<LinkUploadEntity>>
 
+    @Transaction
     @Query("""
         SELECT LinkUploadEntity.* FROM LinkUploadEntity
         LEFT JOIN ShareEntity ON
@@ -396,6 +398,11 @@ abstract class LinkUploadDao : BaseDao<LinkUploadEntity>() {
         contentKeyPacket: String,
         contentKeyPacketSignature: String,
     )
+
+    @Query("""
+        UPDATE LinkUploadEntity SET link_id = :linkId, revision_id = :revisionId WHERE id = :id
+    """)
+    abstract fun updateLinkIdAndRevisionId(id: Long, linkId: String, revisionId: String)
 
     @Query("""
         UPDATE LinkUploadEntity SET manifest_signature = :manifestSignature WHERE id = :id

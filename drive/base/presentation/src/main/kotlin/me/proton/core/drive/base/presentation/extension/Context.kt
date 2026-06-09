@@ -25,7 +25,7 @@ import androidx.annotation.PluralsRes
 import java.util.Locale
 
 val Context.currentLocale: Locale
-    get() = resources.configuration.locales[0]
+    get() = resources.configuration.locales.get(0) ?: Locale.getDefault()
 
 fun Context.quantityString(@PluralsRes pluralRes: Int, quantity: Int): String =
     resources.getQuantityString(

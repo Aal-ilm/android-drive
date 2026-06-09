@@ -44,12 +44,14 @@ import me.proton.core.drive.link.domain.extension.userId
 @Dao
 interface LinkDao {
 
+    @Transaction
     @Query("""
         SELECT * FROM $LINK_WITH_PROPERTIES_ENTITY WHERE
             LinkEntity.user_id = :userId AND LinkEntity.share_id = :shareId AND id = :linkId
     """)
     fun getFlow(userId: UserId, shareId: String, linkId: String): Flow<LinkWithPropertiesEntity?>
 
+    @Transaction
     @Query("""
         SELECT * FROM $LINK_WITH_PROPERTIES_ENTITY WHERE
             LinkEntity.user_id = :userId AND LinkEntity.share_id = :shareId AND id IN(:ids)
@@ -71,6 +73,7 @@ interface LinkDao {
     )
     suspend fun hasAnyFileEntity(userId: UserId, shareId: String): Boolean
 
+    @Transaction
     @Query(
         """
             SELECT LinkEntity.*, LinkFilePropertiesEntity.*, LinkFolderPropertiesEntity.*, LinkAlbumPropertiesEntity.*

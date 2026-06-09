@@ -19,6 +19,7 @@ package me.proton.core.drive.share.user.data.db.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import me.proton.core.data.room.db.BaseDao
 import me.proton.core.domain.entity.UserId
@@ -28,6 +29,7 @@ import me.proton.core.drive.share.user.data.db.entity.UserInvitationIdAndDetails
 @Dao
 abstract class UserInvitationDetailsDao : BaseDao<UserInvitationDetailsEntity>() {
 
+    @Transaction
     @Query(
         """
             SELECT 
@@ -71,6 +73,7 @@ abstract class UserInvitationDetailsDao : BaseDao<UserInvitationDetailsEntity>()
         id: String,
     ): UserInvitationIdAndDetailsEntity
 
+    @Transaction
     @Query(
         """
             SELECT 

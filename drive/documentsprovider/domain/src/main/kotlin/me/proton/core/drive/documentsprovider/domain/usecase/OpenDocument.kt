@@ -97,13 +97,17 @@ class OpenDocument @Inject constructor(
                 }
             }
         }
-
-    private suspend fun UploadFileLink.cacheFolder() = File(getCacheFolder(userId, volumeId.id, draftRevisionId), "tmp")
-        .apply {
-            if (!exists()) {
-                createNewFile()
+    private suspend fun UploadFileLink.cacheFolder() = draftRevisionId.ifEmpty {
+        "upload_$id"
+    }.let { name ->
+        File(getCacheFolder(userId, volumeId.id, name), "tmp")
+            .apply {
+                if (!exists()) {
+                    createNewFile()
+                }
             }
-        }
+    }
+
 
     private suspend fun openDriveLinkFile(
         documentId: DocumentId,

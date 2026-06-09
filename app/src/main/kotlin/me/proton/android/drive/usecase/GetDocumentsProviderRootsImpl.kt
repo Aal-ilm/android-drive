@@ -23,13 +23,22 @@ import me.proton.android.drive.lock.domain.manager.AppLockManager
 import me.proton.core.account.domain.entity.Account
 import me.proton.core.accountmanager.domain.AccountManager
 import me.proton.core.drive.documentsprovider.domain.usecase.GetDocumentsProviderRoots
+import me.proton.core.user.domain.usecase.GetUser
 import javax.inject.Inject
 
 class GetDocumentsProviderRootsImpl @Inject constructor(
     private val appLockManager: AppLockManager,
     private val accountManager: AccountManager,
+    private val getUser: GetUser,
 ) : GetDocumentsProviderRoots {
 
     override suspend fun invoke(): List<Account> = takeUnless { appLockManager.isEnabled() }
-        ?.let { accountManager.getAccounts().first() }.orEmpty()
+        ?.let {
+            accountManager.getAccounts().first().map { account ->
+                account.takeIf { it.email == null }?.let {
+                    getUser(sessionUserId = account.userId, refresh = false).email
+                        ?.let { email -> account.copy(email = email) }
+                } ?: account
+            }
+        }.orEmpty()
 }

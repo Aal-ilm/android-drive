@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Proton AG.
+ * Copyright (c) 2025 Proton AG.
  * This file is part of Proton Core.
  *
  * Proton Core is free software: you can redistribute it and/or modify
@@ -16,16 +16,15 @@
  * along with Proton Core.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.proton.core.drive.documentsprovider.domain.repository
+package me.proton.core.drive.documentsprovider.domain.usecase
 
-import android.net.Uri
 import me.proton.core.drive.documentsprovider.domain.entity.DocumentId
+import me.proton.core.drive.documentsprovider.domain.repository.DocumentsProviderRepository
+import javax.inject.Inject
 
-interface DocumentsProviderRepository {
+class NotifyDocumentChanged @Inject constructor(
+    private val repository: DocumentsProviderRepository,
+) {
 
-    fun getDocumentsUri(documentId: DocumentId): Uri
-
-    fun getFileUri(documentId: DocumentId): Uri
-
-    fun notifyDocumentChanged(documentId: DocumentId)
+    operator fun invoke(documentId: DocumentId) = repository.notifyDocumentChanged(documentId)
 }

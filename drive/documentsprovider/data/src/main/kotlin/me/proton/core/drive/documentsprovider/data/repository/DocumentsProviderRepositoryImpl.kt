@@ -21,6 +21,7 @@ package me.proton.core.drive.documentsprovider.data.repository
 import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import me.proton.core.drive.base.domain.extension.requireIsInstance
 import me.proton.core.drive.documentsprovider.data.DriveDocumentsProvider
 import me.proton.core.drive.documentsprovider.data.DriveFileProvider
 import me.proton.core.drive.documentsprovider.domain.entity.DocumentId
@@ -35,6 +36,14 @@ class DocumentsProviderRepositoryImpl @Inject constructor(
     override fun getDocumentsUri(documentId: DocumentId): Uri =
         DriveDocumentsProvider.getUri(context, documentId)
 
-    override fun getFileUri(documentId: DocumentId): Uri =
-        DriveFileProvider.getUri(context, documentId.userId, documentId.linkId as FileId)
+    override fun getFileUri(documentId: DocumentId): Uri = requireIsInstance<FileId>(documentId.linkId) {
+        "Document must be a file"
+    }.let { fileId ->
+        DriveFileProvider.getUri(context, documentId.userId, fileId)
+    }
+
+    override fun notifyDocumentChanged(documentId: DocumentId) {
+        val uri = DriveDocumentsProvider.getUri(context, documentId)
+        context.contentResolver.notifyChange(uri, null)
+    }
 }

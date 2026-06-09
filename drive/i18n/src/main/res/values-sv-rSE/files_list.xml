@@ -63,9 +63,9 @@
   <string name="files_confirm_empty_trash_title">Töm papperskorg?</string>
   <string name="files_confirm_empty_trash_message">Objekt i papperskorgen kommer att tas bort permanent. Du kan inte ångra denna åtgärd.</string>
   <string name="files_confirm_empty_trash_confirm_action">Töm papperskorg</string>
-  <string name="files_confirm_remove_all_offline_title">Remove all from offline?</string>
-  <string name="files_confirm_remove_all_offline_message">Files will no longer be available offline.</string>
-  <string name="files_confirm_remove_all_offline_confirm_action">Remove all</string>
+  <string name="files_confirm_remove_all_offline_title">Ta bort alla från offline?</string>
+  <string name="files_confirm_remove_all_offline_message">Filer kommer inte längre vara tillgängliga offline.</string>
+  <string name="files_confirm_remove_all_offline_confirm_action">Ta bort alla</string>
   <string name="files_display_file_info_action">Fildetaljer</string>
   <string name="files_display_folder_info_action">Mappdetaljer</string>
 </resources>

@@ -23,6 +23,8 @@ import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.extension.nullIfNotFound
 import me.proton.core.drive.base.domain.extension.toResult
 import me.proton.core.drive.base.domain.log.LogTag.EVENTS
+import me.proton.core.drive.documentsprovider.domain.entity.DocumentId
+import me.proton.core.drive.documentsprovider.domain.usecase.NotifyDocumentChanged
 import me.proton.core.drive.drivelink.offline.domain.usecase.UpdateOfflineContent
 import me.proton.core.drive.eventmanager.entity.LinkEventVO
 import me.proton.core.drive.link.domain.entity.FolderId
@@ -51,6 +53,7 @@ class HandleCreateOrUpdateLinksEvent @Inject constructor(
     private val insertOrDeleteAlbumListings: InsertOrDeleteAlbumListings,
     private val getPhotoShare: GetPhotoShare,
     private val insertOrDeleteAlbumPhotoListings: InsertOrDeleteAlbumPhotoListings,
+    private val notifyDocumentChanged: NotifyDocumentChanged,
 ) {
 
     suspend operator fun invoke(vos: List<LinkEventVO>) {
@@ -73,6 +76,9 @@ class HandleCreateOrUpdateLinksEvent @Inject constructor(
                     insertOrDeletePhotoListings(volumeId, links.filterVolumePhotoListings(photoShare?.rootFolderId))
                     insertOrDeleteAlbumPhotoListings(volumeId, links.filterIsInstance<Link.File>())
                     insertOrDeleteAlbumListings(volumeId, links.filterIsInstance<Link.Album>())
+                    links.forEach { link ->
+                        notifyDocumentChanged(DocumentId(link.userId, link.id))
+                    }
                 }
         }
     }

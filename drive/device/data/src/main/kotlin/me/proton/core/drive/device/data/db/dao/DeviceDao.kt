@@ -20,6 +20,7 @@ package me.proton.core.drive.device.data.db.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import me.proton.core.data.room.db.BaseDao
 import me.proton.core.domain.entity.UserId
@@ -32,6 +33,7 @@ abstract class DeviceDao : BaseDao<DeviceEntity>() {
      * By joining [DeviceEntity] table with [LinkEntity] table we ensure that modification of link name would
      * emit list of devices so that new name can be used.
      */
+    @Transaction
     @Query(
         """
             SELECT DeviceEntity.* FROM DeviceEntity
@@ -69,6 +71,7 @@ abstract class DeviceDao : BaseDao<DeviceEntity>() {
     @Query("DELETE FROM DeviceEntity WHERE user_id = :userId")
     abstract suspend fun deleteAll(userId: UserId)
 
+    @Transaction
     @Query(
         """
             SELECT DeviceEntity.* FROM DeviceEntity

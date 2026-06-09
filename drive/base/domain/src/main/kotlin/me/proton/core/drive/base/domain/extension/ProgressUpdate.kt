@@ -21,8 +21,11 @@ package me.proton.core.drive.base.domain.extension
 import me.proton.core.drive.base.domain.entity.Percentage
 import me.proton.drive.sdk.ProgressUpdate
 
-fun ProgressUpdate.toPercentage() = if (bytesInTotal == 0L) {
-    Percentage(0)
-} else {
-    Percentage(bytesCompleted.toFloat() / bytesInTotal)
+fun ProgressUpdate.toPercentage(): Percentage {
+    val total = bytesInTotal
+    return if (total == null || total == 0L) {
+        Percentage(0)
+    } else {
+        Percentage(bytesCompleted.toFloat() / total)
+    }
 }

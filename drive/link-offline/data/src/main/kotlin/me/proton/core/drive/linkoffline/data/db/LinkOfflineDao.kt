@@ -45,6 +45,7 @@ interface LinkOfflineDao : LinkDao {
     """)
     suspend fun hasAnyLinkOfflineEntity(userId: UserId, shareId: String, linkIds: List<String>): Boolean
 
+    @Transaction
     @Query("""
         SELECT EXISTS (SELECT * FROM AlbumListingEntity
             LEFT JOIN LinkOfflineEntity ON

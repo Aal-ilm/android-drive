@@ -22,6 +22,7 @@ import android.provider.DocumentsContract
 import me.proton.core.drive.base.domain.log.LogTag
 import me.proton.core.drive.base.domain.log.logId
 import me.proton.core.drive.documentsprovider.domain.entity.DocumentId
+import me.proton.core.drive.drivelink.domain.usecase.UseSdkForUpload
 import me.proton.core.drive.folder.create.domain.usecase.CreateFolder
 import me.proton.core.drive.link.domain.entity.FileId
 import me.proton.core.drive.linkupload.domain.entity.CacheOption
@@ -37,6 +38,7 @@ class CreateDocument @Inject constructor(
     private val createFolder: CreateFolder,
     private val createNewFile: CreateNewFile,
     private val createUploadFile: CreateUploadFile,
+    private val useSdkForUpload: UseSdkForUpload,
 ) {
 
     suspend operator fun invoke(parentDocumentId: DocumentId, mimeType: String?, displayName: String?) =
@@ -49,7 +51,7 @@ class CreateDocument @Inject constructor(
                 CoreLogger.d(LogTag.DOCUMENTS_PROVIDER, "Folder created with id: ${folderId.id.logId()}")
                 DocumentId(userId, folderId)
             } else {
-                val link = createUploadFile(
+                val uploadFileLink = createUploadFile(
                     userId = userId,
                     volumeId = driveLink.volumeId,
                     parentId = driveLink.id,
@@ -61,12 +63,24 @@ class CreateDocument @Inject constructor(
                     priority = UploadFileLink.USER_PRIORITY,
                     shouldBroadcastErrorMessage = true,
                 ).getOrThrow()
-                createNewFile(
-                    uploadFileLink = link,
-                ).getOrThrow().let { uploadFileLink ->
-                    val fileId = FileId(uploadFileLink.shareId, requireNotNull(uploadFileLink.linkId))
-                    CoreLogger.d(LogTag.DOCUMENTS_PROVIDER, "File created with id: ${fileId.id.logId()}")
-                    DocumentId(userId, fileId)
+                if (useSdkForUpload(driveLink).getOrThrow()) {
+                    CoreLogger.d(
+                        LogTag.DOCUMENTS_PROVIDER,
+                        "File waiting for sdk upload with id: ${uploadFileLink.id}"
+                    )
+                    DocumentId(userId, uploadId = uploadFileLink.id.toString())
+                } else {
+                    createNewFile(
+                        uploadFileLink = uploadFileLink,
+                    ).getOrThrow().let { uploadFileLink ->
+                        val fileId =
+                            FileId(uploadFileLink.shareId, requireNotNull(uploadFileLink.linkId))
+                        CoreLogger.d(
+                            LogTag.DOCUMENTS_PROVIDER,
+                            "File created with id: ${fileId.id.logId()}"
+                        )
+                        DocumentId(userId, fileId)
+                    }
                 }
             }
         }

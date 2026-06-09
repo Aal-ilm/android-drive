@@ -28,6 +28,7 @@ import me.proton.core.drive.base.domain.entity.Percentage
 import me.proton.core.drive.base.domain.extension.bytes
 import me.proton.core.drive.base.domain.extension.getOrNull
 import me.proton.core.drive.base.domain.extension.mapWithPrevious
+import me.proton.core.drive.base.domain.extension.requireIsInstance
 import me.proton.core.drive.base.domain.extension.toPercentage
 import me.proton.core.drive.base.domain.formatter.DateTimeFormatter
 import me.proton.core.drive.base.domain.log.LogTag
@@ -58,14 +59,11 @@ import me.proton.drive.sdk.DownloadController
 import me.proton.drive.sdk.ProtonDriveSdkException
 import me.proton.drive.sdk.ProtonSdkError
 import me.proton.drive.sdk.ProtonSdkError.ErrorDomain
-import me.proton.drive.sdk.entity.DegradedFileNode
-import me.proton.drive.sdk.entity.FileContentDigests
 import me.proton.drive.sdk.entity.FileNode
-import me.proton.drive.sdk.entity.NodeResult
+import me.proton.drive.sdk.entity.Node
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-import java.time.Instant
 import javax.inject.Inject
 
 class DownloadFileSdk @Inject constructor(
@@ -198,16 +196,17 @@ class DownloadFileSdk @Inject constructor(
                 StandardCopyOption.REPLACE_EXISTING
             )
             if (verifyDownloadedFile.isAllowed(userId = fileId.userId)) {
-                var nodeResult: NodeResult? = null
+                var node: Node? = null
                 var checksumVerified = false
                 coRunCatching {
                     val nodeUid = fileId.nodeUid(volumeId)
-                    nodeResult = protonSdkClientProvider.getOrCreate(
+                    node = protonSdkClientProvider.getOrCreate(
                         userId = fileId.userId,
                         volumeType = volumeType
                     ).getOrThrow().getNode(nodeUid)
-                    checkNotNull(nodeResult) { "Cannot get node from: $nodeUid"}
-                    val contentDigests = nodeResult.claimedDigests
+                    checkNotNull(node) { "Cannot get node from: $nodeUid"}
+                    val fileNode = requireIsInstance<FileNode>(node) { "Node must be a file from: $nodeUid"}
+                    val contentDigests = fileNode.activeRevision.claimedDigests
                     checksumVerified = contentDigests?.sha1Verified == true
                     val sha1 = contentDigests?.sha1.orEmpty()
                     verifyDownloadedFile(
@@ -241,7 +240,7 @@ class DownloadFileSdk @Inject constructor(
                                     message = buildString {
                                         append("ContentDigestVerifierException.Mismatch ChecksumVerified=false, ")
                                         append("revisionId=${revisionId}, ")
-                                        append("creationTime=${nodeResult?.creationTime?.captureTime(dateTimeFormatter)}")
+                                        append("creationTime=${node?.creationTime?.captureTime(dateTimeFormatter)}")
                                     },
                                 )
                             }
@@ -275,24 +274,4 @@ class DownloadFileSdk @Inject constructor(
                 && error.domain == ErrorDomain.DataIntegrity
                 && isDownloadCompleteWithVerificationIssue()
     }
-
-    private val NodeResult.claimedDigests: FileContentDigests? get() =
-        when(this) {
-            is NodeResult.Error -> if(node is DegradedFileNode) {
-                (node as DegradedFileNode).activeRevision?.claimedDigests
-            } else {
-                null
-            }
-            is NodeResult.Value -> if(node is FileNode) {
-                (node as FileNode).activeRevision.claimedDigests
-            } else {
-                null
-            }
-        }
-
-    private val NodeResult.creationTime: Instant get() =
-        when(this) {
-            is NodeResult.Error -> node.creationTime
-            is NodeResult.Value -> node.creationTime
-        }
 }

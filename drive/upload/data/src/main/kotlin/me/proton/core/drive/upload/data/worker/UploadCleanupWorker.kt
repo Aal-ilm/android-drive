@@ -42,7 +42,9 @@ import me.proton.core.drive.base.domain.usecase.BroadcastMessages
 import me.proton.core.drive.base.domain.util.coRunCatching
 import me.proton.core.drive.linkupload.domain.entity.NetworkTypeProviderType
 import me.proton.core.drive.linkupload.domain.entity.UploadFileLink
+import me.proton.core.drive.linkupload.domain.entity.UploadState
 import me.proton.core.drive.linkupload.domain.usecase.GetUploadFileLink
+import me.proton.core.drive.linkupload.domain.usecase.UpdateUploadState
 import me.proton.core.drive.upload.data.extension.logTag
 import me.proton.core.drive.upload.data.manager.uniqueUploadThrottleWorkName
 import me.proton.core.drive.upload.data.provider.NetworkTypeProvider
@@ -75,6 +77,7 @@ class UploadCleanupWorker @AssistedInject constructor(
     broadcastMessages: BroadcastMessages,
     getUploadFileLink: GetUploadFileLink,
     uploadErrorManager: UploadErrorManager,
+    private val updateUploadState: UpdateUploadState,
     private val getBlockFolder: GetBlockFolder,
     private val removeUploadFile: RemoveUploadFile,
     private val uriResolver: UriResolver,
@@ -118,6 +121,7 @@ class UploadCleanupWorker @AssistedInject constructor(
             error.log(uploadFileLink.logTag(), "Cannot enqueue UploadThrottleWorker")
         }
         try {
+            updateUploadState(uploadFileLink.id, UploadState.CLEANUP).getOrThrow()
             announceUploadEvent(
                 uploadFileLink = uploadFileLink,
                 uploadEvent = Event.Upload(

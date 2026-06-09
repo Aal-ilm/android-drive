@@ -71,10 +71,11 @@ class GetPublicAddressInfo @Inject constructor(
     suspend operator fun invoke(
         userId: UserId,
         email: String,
-        unverified: Boolean = false
+        unverified: Boolean = false,
+        isStale: Boolean = false,
     ): Result<PublicAddressInfo?> = coRunCatching {
         val url = "$publicAddressInfoUrl?email=$email"
-        if (hasStalePublicAddressKeys(userId, email).getOrThrow() && isAllowedToFetch(userId, url)) {
+        if ((hasStalePublicAddressKeys(userId, email).getOrThrow() || isStale) && isAllowedToFetch(userId, url)) {
             invoke(userId, email, Source.RemoteNoCache, unverified).getOrThrow().also {
                 baseRepository.setLastFetch(userId, url, TimestampMs())
                 removeAllStalePublicAddressKeys(userId, email).getOrNull(LogTag.KEY)

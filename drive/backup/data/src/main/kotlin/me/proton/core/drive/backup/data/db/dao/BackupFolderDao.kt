@@ -20,6 +20,7 @@ package me.proton.core.drive.backup.data.db.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import me.proton.core.data.room.db.BaseDao
 import me.proton.core.domain.entity.UserId
@@ -120,6 +121,7 @@ abstract class BackupFolderDao : BaseDao<BackupFolderEntity>() {
         folderId: String,
     )
 
+    @Transaction
     @Query(
         """
         SELECT BackupFolderEntity.* FROM BackupFolderEntity 

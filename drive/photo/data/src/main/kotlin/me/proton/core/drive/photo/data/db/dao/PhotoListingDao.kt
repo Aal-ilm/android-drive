@@ -50,6 +50,7 @@ abstract class PhotoListingDao : BaseDao<PhotoListingEntity>() {
         Direction.DESCENDING -> getPhotoListingWithFilePropertiesDesc(userId, volumeId, limit, lastCaptureTime, lastId)
     }
 
+    @Transaction
     @Query(PHOTO_LISTING_WITH_FILE_PROPERTIES_ASC)
     abstract suspend fun getPhotoListingWithFilePropertiesAsc(
         userId: UserId,
@@ -59,6 +60,7 @@ abstract class PhotoListingDao : BaseDao<PhotoListingEntity>() {
         lastId: String?,
     ): List<PhotoListingWithFileProperties>
 
+    @Transaction
     @Query(PHOTO_LISTING_WITH_FILE_PROPERTIES_DESC)
     abstract suspend fun getPhotoListingWithFilePropertiesDesc(
         userId: UserId,

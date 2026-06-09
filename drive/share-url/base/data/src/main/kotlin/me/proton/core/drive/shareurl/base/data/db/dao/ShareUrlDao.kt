@@ -31,6 +31,7 @@ abstract class ShareUrlDao : BaseDao<ShareUrlEntity>() {
     @Query("SELECT EXISTS($QUERY_GET_SHARE_URL)")
     abstract suspend fun hasShareUrlEntity(userId: UserId, shareUrlId: String): Boolean
 
+    @Transaction
     @Query("SELECT EXISTS($QUERY_GET_SHARE_URL_FOR_LINK)")
     abstract suspend fun hasShareUrlEntityForLink(linkId: String): Boolean
 
@@ -42,6 +43,7 @@ abstract class ShareUrlDao : BaseDao<ShareUrlEntity>() {
     @Query(QUERY_GET_SHARE_URL)
     abstract fun getFlow(userId: UserId, shareUrlId: String): Flow<ShareUrlEntity?>
 
+    @Transaction
     @Query(QUERY_GET_SHARE_URL_FOR_LINK)
     abstract fun getFlowForLink(linkId: String): Flow<ShareUrlEntity?>
 

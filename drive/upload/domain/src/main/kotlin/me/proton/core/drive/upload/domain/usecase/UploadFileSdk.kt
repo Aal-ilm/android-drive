@@ -42,12 +42,15 @@ import me.proton.core.drive.file.base.domain.entity.ThumbnailType
 import me.proton.core.drive.linkupload.domain.entity.UploadFileLink
 import me.proton.core.drive.linkupload.domain.entity.UploadState
 import me.proton.core.drive.linkupload.domain.manager.UploadSpeedManager
+import me.proton.core.drive.linkupload.domain.usecase.UpdateLinkIdAndRevisionId
 import me.proton.core.drive.linkupload.domain.usecase.UpdateUploadState
 import me.proton.core.drive.share.domain.entity.Share
 import me.proton.core.drive.share.domain.usecase.GetShare
 import me.proton.core.drive.thumbnail.domain.usecase.CreateThumbnail
 import me.proton.core.drive.upload.domain.extension.injectMessageDigests
 import me.proton.core.drive.base.domain.extension.memorizedDigest
+import me.proton.core.drive.link.domain.extension.linkId
+import me.proton.core.drive.link.domain.extension.revisionId
 import me.proton.core.drive.upload.domain.manager.UploadSdkManager
 import me.proton.core.drive.upload.domain.resolver.UriResolver
 import okio.FileNotFoundException
@@ -63,6 +66,7 @@ class UploadFileSdk @Inject constructor(
     private val updateEventAction: UpdateEventAction,
     private val createThumbnail: CreateThumbnail,
     private val updateUploadState: UpdateUploadState,
+    private val updateLinkIdAndRevisionId: UpdateLinkIdAndRevisionId,
     private val configurationProvider: ConfigurationProvider,
     private val getShare: GetShare,
     private val getFeatureFlag: GetFeatureFlag,
@@ -105,6 +109,11 @@ class UploadFileSdk @Inject constructor(
                 } finally {
                     job.cancel()
                 }
+                updateLinkIdAndRevisionId(
+                    uploadFileLinkId = uploadFileLink.id,
+                    linkId = result.nodeUid.linkId,
+                    revisionId = result.revisionUid.revisionId,
+                ).getOrThrow()
                 updateEventAction(uploadFileLink.userId, uploadFileLink.volumeId) {
                     uploadSdkManager.close(uploadFileLink)
                     result

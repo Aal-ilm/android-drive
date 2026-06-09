@@ -20,6 +20,7 @@ package me.proton.core.drive.photo.data.db.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import me.proton.core.data.room.db.BaseDao
 import me.proton.core.domain.entity.UserId
@@ -103,6 +104,7 @@ abstract class AlbumPhotoListingDao : BaseDao<AlbumPhotoListingEntity>() {
         )
     }
 
+    @Transaction
     @Query(ALBUM_PHOTO_LISTING_ASC)
     protected abstract suspend fun getAlbumPhotoListingsAsc(
         userId: UserId,
@@ -113,6 +115,7 @@ abstract class AlbumPhotoListingDao : BaseDao<AlbumPhotoListingEntity>() {
         offset: Int,
     ): List<AlbumPhotoListingWithFileProperties>
 
+    @Transaction
     @Query(ALBUM_PHOTO_LISTING_ASC)
     protected abstract fun getAlbumPhotoListingsAscFlow(
         userId: UserId,
@@ -123,6 +126,7 @@ abstract class AlbumPhotoListingDao : BaseDao<AlbumPhotoListingEntity>() {
         offset: Int,
     ): Flow<List<AlbumPhotoListingWithFileProperties>>
 
+    @Transaction
     @Query(ALBUM_PHOTO_LISTING_DESC)
     protected abstract suspend fun getAlbumPhotoListingsDesc(
         userId: UserId,
@@ -133,6 +137,7 @@ abstract class AlbumPhotoListingDao : BaseDao<AlbumPhotoListingEntity>() {
         offset: Int,
     ): List<AlbumPhotoListingWithFileProperties>
 
+    @Transaction
     @Query(ALBUM_PHOTO_LISTING_DESC)
     protected abstract fun getAlbumPhotoListingsDescFlow(
         userId: UserId,

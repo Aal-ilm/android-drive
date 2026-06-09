@@ -16,4 +16,8 @@ cross-client: # only one device
   device:
     - model: MediumPhone.arm
       version: 33
+background: # only one device
+  device:
+    - model: MediumPhone.arm
+      version: 33
 

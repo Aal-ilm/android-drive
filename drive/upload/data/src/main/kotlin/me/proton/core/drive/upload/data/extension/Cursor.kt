@@ -23,13 +23,10 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import androidx.core.database.getStringOrNull
+import me.proton.core.drive.base.data.extension.convertToTimestampMs
 import me.proton.core.drive.base.domain.entity.Bytes
 import me.proton.core.drive.base.domain.entity.TimestampMs
-import me.proton.core.drive.base.domain.entity.TimestampS
-import me.proton.core.drive.base.domain.entity.toTimestampMs
 import me.proton.core.drive.base.domain.extension.bytes
-import java.time.Instant
-import java.time.ZoneOffset
 
 val Cursor.name: String? get() = getColumnIndex(OpenableColumns.DISPLAY_NAME).takeIf { index -> index >= 0 }
     ?.let { index ->
@@ -53,16 +50,6 @@ val Cursor.lastModified: TimestampMs? get() {
         else -> null
     }?.takeIf { lastModified -> lastModified.value >= 0 }
 }
-
-internal val Long.convertToTimestampMs: TimestampMs? get() = takeIf { this >= 0 }
-    ?.let {
-        val nextYear = Instant.now().atZone(ZoneOffset.UTC).year + 1
-        when {
-            Instant.ofEpochSecond(this).atZone(ZoneOffset.UTC).year <= nextYear -> TimestampS(this).toTimestampMs()
-            Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).year <= nextYear -> TimestampMs(this)
-            else -> null
-        }
-    }
 
 val Cursor.bucketDisplayName: String? get() {
     val bucketDisplayName =

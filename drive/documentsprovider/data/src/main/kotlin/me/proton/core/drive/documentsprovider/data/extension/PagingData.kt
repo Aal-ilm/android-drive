@@ -38,7 +38,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import me.proton.core.drive.base.domain.log.LogTag
+import me.proton.core.drive.base.domain.log.LogTag.DOCUMENTS_PROVIDER
 import me.proton.core.drive.drivelink.domain.entity.DriveLink
+import me.proton.core.util.kotlin.CoreLogger
 
 /**
  * [PagingData] doesn't allow to fetch its content directly. Yet, as we use it to fetch the content and
@@ -91,9 +94,12 @@ suspend fun Flow<PagingData<DriveLink>>.asCursor(
         val isLoading = loadState.isLoading
         list?.let { list ->
             if (list.isNotEmpty()) {
-                // We want to trigger the next call if needed
-                collector.differ.getItem(list.size - 1)
-                //collector.differ[list.size - 1]
+                // Trigger prefetch of the next page; ignore if pager was reset concurrently
+                try {
+                    collector.differ.getItem(list.size - 1)
+                } catch (e: IndexOutOfBoundsException) {
+                    CoreLogger.d(DOCUMENTS_PROVIDER, e, "Ignoring error")
+                }
             }
         }
         object : MatrixCursor(projection, list?.size ?: 0) {
